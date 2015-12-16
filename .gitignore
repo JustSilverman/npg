@@ -1,0 +1,8 @@
+report.xml
+.DS_STORE
+/notes/*
+/tmp*
+.node-version
+/node_modules/*
+*::*
+npm-debug.log
