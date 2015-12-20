@@ -32,10 +32,10 @@ co(function * () { // coroutine
 
 ```
 // create new postgres store
-initdb tmp/pg
+initdb tmp-pgstore/pg
 
 // start postgres server
-postgres -D tmp/pg -i -p 1234
+postgres -D tmp-pgstore/pg -i -p 1234
 
 // connect to postgres server and opens client
 psql -h localhost -p 1234 postgres
