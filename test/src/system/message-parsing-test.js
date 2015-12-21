@@ -172,5 +172,18 @@ describe('Message parsing', () => {
         assertIsReadyForQuery(readyForQuery)
       })
     })
+
+    describe('attempting to create a database that already exists', () => {
+      it('parses the server response to create a database', () => {
+        const input = readFileSync('./test/fixtures/server-create-existing-database')
+        const [ errorMessage, readyForQuery] = parseMessages(input)
+        const expectedError = 'SERROR\u0000C42P04\u0000Mdatabase "users" already exists\u0000Fdbcommands.c\u0000L443\u0000Rcreatedb\u0000\u0000'
+
+        assert.strictEqual(errorMessage.type[0], 0x45)
+        assert.strictEqual(errorMessage.length, 81)
+        assert.strictEqual(errorMessage.body.toString('ascii'), expectedError)
+        assertIsReadyForQuery(readyForQuery)
+      })
+    })
   })
 })
