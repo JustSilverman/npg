@@ -16,7 +16,7 @@ describe('Message parsing', () => {
   }
 
   // Buffer messageBody -> [ 'string1', 'string2' ... ]
-  function toAsciiEmptyByteSeparated(messageBody, currentMessage = [], messageList = []) {
+  function toUtf8EmptyByteSeparated(messageBody, currentMessage = [], messageList = []) {
     const delimiter = 0x00
     if (!messageBody.length) {
       return messageList
@@ -26,13 +26,13 @@ describe('Message parsing', () => {
     let rest = messageBody.slice(1, messageBody.length)
 
     if (head === delimiter) {
-      messageList.push(new Buffer(currentMessage).toString('ascii'))
+      messageList.push(new Buffer(currentMessage).toString('utf8'))
       currentMessage = []
     } else {
       currentMessage.push(head)
     }
 
-    return toAsciiEmptyByteSeparated(rest, currentMessage, messageList)
+    return toUtf8EmptyByteSeparated(rest, currentMessage, messageList)
   }
 
   function assertIsReadyForQuery(message) {
@@ -159,7 +159,7 @@ describe('Message parsing', () => {
 
         assert.strictEqual(message.type[0], 0x51)
         assert.strictEqual(message.length, 64)
-        assert.strictEqual(message.body.toString('ascii'), expectedBody)
+        assert.strictEqual(message.body.toString('utf8'), expectedBody)
       })
 
       it('parses the server response to create a database', () => {
@@ -168,7 +168,7 @@ describe('Message parsing', () => {
 
         assert.strictEqual(message.type[0], 0x43)
         assert.strictEqual(message.length, 20)
-        assert.strictEqual(message.body.toString('ascii'), 'CREATE DATABASE\u0000')
+        assert.strictEqual(message.body.toString('utf8'), 'CREATE DATABASE\u0000')
         assertIsReadyForQuery(readyForQuery)
       })
     })
@@ -181,7 +181,7 @@ describe('Message parsing', () => {
 
         assert.strictEqual(errorMessage.type[0], 0x45)
         assert.strictEqual(errorMessage.length, 81)
-        assert.strictEqual(errorMessage.body.toString('ascii'), expectedError)
+        assert.strictEqual(errorMessage.body.toString('utf8'), expectedError)
         assertIsReadyForQuery(readyForQuery)
       })
     })
