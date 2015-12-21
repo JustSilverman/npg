@@ -35,6 +35,12 @@ describe('Message parsing', () => {
     return toAsciiEmptyByteSeparated(rest, currentMessage, messageList)
   }
 
+  function assertIsReadyForQuery(message) {
+    assert.strictEqual(message.type[0], 0x5a)
+    assert.strictEqual(message.length, 5)
+    assert.deepEqual(message.body, new Buffer([0x49]))
+  }
+
   describe('parsing a server response to the startup message', () => {
     /*
       Questions:
@@ -141,6 +147,30 @@ describe('Message parsing', () => {
       assert.strictEqual(exitMessage.length, 4)
       assert.deepEqual(exitMessage.body, new Buffer([]))
       assert.strictEqual(remainder.length, 0)
+    })
+  })
+
+  describe('parsing messages to create a database', () => {
+    describe('successfully creating a database with no parameters', () => {
+      it('parses the client request to create a database', () => {
+        const input = readFileSync('./test/fixtures/client-create-database-with-options')
+        const [ message, remainder ] = parseMessage(input)
+        const expectedBody = 'create database users connection limit 10 template default;\u0000'
+
+        assert.strictEqual(message.type[0], 0x51)
+        assert.strictEqual(message.length, 64)
+        assert.strictEqual(message.body.toString('ascii'), expectedBody)
+      })
+
+      it('parses the server response to create a database', () => {
+        const input = readFileSync('./test/fixtures/server-create-database-with-options')
+        const [ message, readyForQuery ] = parseMessages(input)
+
+        assert.strictEqual(message.type[0], 0x43)
+        assert.strictEqual(message.length, 20)
+        assert.strictEqual(message.body.toString('ascii'), 'CREATE DATABASE\u0000')
+        assertIsReadyForQuery(readyForQuery)
+      })
     })
   })
 })
