@@ -188,4 +188,85 @@ describe('Message parsing', () => {
       })
     })
   })
+
+
+  describe('creating a table, adding data and retrieving it', () => {
+    describe('parses messages from the client', () => {
+      let messages
+      before(() => {
+        messages = parseMessages(readFileSync('./test/fixtures/client-create-add-retrieve'))
+      })
+
+      it('parses the create table query', () => {
+        const createTable = messages[0]
+        assert.strictEqual(createTable.type[0], 0x51)
+        assert.strictEqual(createTable.length, 33)
+        assert.strictEqual(createTable.body.toString('utf8'), 'create table nums (num int);\u0000')
+      })
+
+      it('parses the insert values queries', () => {
+        const [ insert1, insert2 ] = messages.slice(1, 3)
+        assert.strictEqual(insert1.type[0], 0x51)
+        assert.strictEqual(insert1.length, 33)
+        assert.strictEqual(insert1.body.toString('utf8'), 'insert into nums values (1);\u0000')
+
+        assert.strictEqual(insert2.type[0], 0x51)
+        assert.strictEqual(insert2.length, 33)
+        assert.strictEqual(insert2.body.toString('utf8'), 'insert into nums values (2);\u0000')
+      })
+
+      it('parses the select query', () => {
+        const select = messages[3]
+        assert.strictEqual(select.type[0], 0x51)
+        assert.strictEqual(select.length, 24)
+        assert.strictEqual(select.body.toString('utf8'), 'select * from nums;\u0000')
+      })
+    })
+
+    describe('parses messages from the server', () => {
+      let messages
+      before(() => {
+        messages = parseMessages(readFileSync('./test/fixtures/server-create-add-retrieve'))
+      })
+
+      it('parses the create table query', () => {
+        const [ createTable, readyForQuery ] = messages.slice(0, 2)
+        assert.strictEqual(createTable.type[0], 0x43)
+        assert.strictEqual(createTable.length, 17)
+        assert.strictEqual(createTable.body.toString('utf8'), 'CREATE TABLE\u0000')
+        assertIsReadyForQuery(readyForQuery)
+      })
+
+      it('parses the create insert queries', () => {
+        const [ insert1, readyForQuery1, insert2, readyForQuery2 ] = messages.slice(2, 6)
+        assert.strictEqual(insert1.type[0], 0x43)
+        assert.strictEqual(insert1.length, 15)
+        assert.strictEqual(insert1.body.toString('utf8'), 'INSERT 0 1\u0000')
+        assertIsReadyForQuery(readyForQuery1)
+
+        assert.strictEqual(insert2.type[0], 0x43)
+        assert.strictEqual(insert2.length, 15)
+        assert.strictEqual(insert2.body.toString('utf8'), 'INSERT 0 1\u0000')
+        assertIsReadyForQuery(readyForQuery2)
+      })
+
+      it('parses the select query', () => {
+        const [ rowDescription1, dataRow1, dataRow2, close, readyForQuery ] = messages.slice(6, 12)
+
+        assert.strictEqual(rowDescription1.type[0], 0x54)
+        assert.strictEqual(rowDescription1.length, 28)
+
+        assert.strictEqual(dataRow1.type[0], 0x44)
+        assert.strictEqual(dataRow1.length, 11)
+
+        assert.strictEqual(dataRow2.type[0], 0x44)
+        assert.strictEqual(dataRow2.length, 11)
+
+        assert.strictEqual(close.type[0], 0x43)
+        assert.strictEqual(close.length, 13)
+
+        assertIsReadyForQuery(readyForQuery)
+      })
+    })
+  })
 })
