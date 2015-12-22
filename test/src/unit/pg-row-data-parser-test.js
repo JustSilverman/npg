@@ -3,6 +3,14 @@ import { parseColumnValue } from '../../../src/pg-row-data-parser'
 
 describe('Row data parser', () => {
   describe('parsing rows of a single type', () => {
+    describe('unsupported types', () => {
+      it('returns the value as a string', () => {
+        const unsupportedTypeId = -23
+        const rowData = new Buffer('some string', 'utf8')
+        assert.deepEqual(parseColumnValue(unsupportedTypeId, 'utf8', rowData), 'some string')
+      })
+    })
+
     describe('integer types', () => {
       describe('int2', () => {
         it('parses a positive 2 byte integer', () => {
