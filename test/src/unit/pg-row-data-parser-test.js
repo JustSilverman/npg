@@ -91,5 +91,24 @@ describe('Row data parser', () => {
       })
     })
 
+    describe('Booleans', () => {
+      it('parses a boolean and is true for all true states', () => {
+        ['TRUE', 't', 'true', 'y', 'yes', 'on', '1'].forEach((value) => {
+          assert.strictEqual(parseColumnValue(16, new Buffer(value, 'utf8')), true)
+        })
+      })
+
+      it('parses a boolean and is false for all false states', () => {
+        ['FALSE', 'f', 'false', 'n', 'no', 'off', '0'].forEach((value) => {
+          assert.strictEqual(parseColumnValue(16, new Buffer(value, 'utf8')), false)
+        })
+      })
+
+      it('throws if passed an unsupported boolean value', () => {
+        assert.throws(() => {
+          parseColumnValue(16, new Buffer('very true', 'utf8'))
+        })
+      })
+    })
   })
 })

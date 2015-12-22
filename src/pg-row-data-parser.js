@@ -1,3 +1,6 @@
+const trueValues = new Set(['TRUE', 't', 'true', 'y', 'yes', 'on', '1'])
+const falseValues = new Set(['FALSE', 'f', 'false', 'n', 'no', 'off', '0'])
+
 const parseIntType = (buf) => {
   return parseInt(buf.toString('utf8'))
 }
@@ -6,6 +9,15 @@ const parseFloatType = (buf) => {
   return parseFloat(buf.toString('utf8'))
 }
 
+const parseBoolType = (buf) => {
+  const asString = buf.toString('utf8')
+  if (trueValues.has(asString)) {
+    return true
+  } else if (falseValues.has(asString)) {
+    return false
+  }
+
+  throw new Error('Unsupported boolean value of ' + asString)
 }
 
 const dataTypeIdToParseFnc = new Map()
