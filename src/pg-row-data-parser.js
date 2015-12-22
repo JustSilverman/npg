@@ -1,16 +1,16 @@
 const trueValues = new Set(['TRUE', 't', 'true', 'y', 'yes', 'on', '1'])
 const falseValues = new Set(['FALSE', 'f', 'false', 'n', 'no', 'off', '0'])
 
-const parseIntType = (buf) => {
-  return parseInt(buf.toString('utf8'))
+const parseIntType = (buf, enc) => {
+  return parseInt(buf.toString(enc))
 }
 
-const parseFloatType = (buf) => {
-  return parseFloat(buf.toString('utf8'))
+const parseFloatType = (buf, enc) => {
+  return parseFloat(buf.toString(enc))
 }
 
-const parseBoolType = (buf) => {
-  const asString = buf.toString('utf8')
+const parseBoolType = (buf, enc) => {
+  const asString = buf.toString(enc)
   if (trueValues.has(asString)) {
     return true
   } else if (falseValues.has(asString)) {
@@ -33,8 +33,9 @@ dataTypeIdToParseFnc.set(16, parseBoolType)
 /**
  * Takes dataTypeId and buffer and returns a parsed column value [Integer | Float | boolean]
  * dataTypeId: Postgres data typ OID
+ * enc: encoding
  * buf: Column data in binary
 **/
-export const parseColumnValue = (dataTypeId, buf) => {
-  return dataTypeIdToParseFnc.get(dataTypeId)(buf)
+export const parseColumnValue = (dataTypeId, enc, buf) => {
+  return dataTypeIdToParseFnc.get(dataTypeId)(buf, enc)
 }
