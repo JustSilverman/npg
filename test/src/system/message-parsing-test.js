@@ -1,5 +1,5 @@
 import * as assert from 'assert'
-import { parseMessage, parseStartupMessage } from '../../../src/pg-protocol-parser'
+import { parseMessage, parseStartupMessage } from '../../../src/pg-message-parser'
 import { readFileSync } from 'fs'
 
 describe('Message parsing', () => {

@@ -1,8 +1,8 @@
 import { deepEqual } from 'assert'
-import { parseMessage, parseStartupMessage } from '../../../src/pg-protocol-parser'
+import { parseMessage, parseStartupMessage } from '../../../src/pg-message-parser'
 import { readFileSync } from 'fs'
 
-describe('pg-protocol-parser', () => {
+describe('Message parser', () => {
   describe('#parseMessage parses standard (non-startup) messages', () => {
     it('parses a message with a body of length 1', () => {
       const input = new Buffer([
