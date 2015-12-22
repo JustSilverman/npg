@@ -5,7 +5,7 @@ import { readFileSync } from 'fs'
 describe('Message parsing', () => {
   // Buffer buf -> [ message1, message2 ... ]
   // message -> [ { type: Buffer, length: Int, body: Buffer}, Buffer remainder ]
-  function parseMessages(buf, messages = []) {
+  const parseMessages = (buf, messages = []) => {
     if (!buf.length) {
       return messages
     }
@@ -16,7 +16,7 @@ describe('Message parsing', () => {
   }
 
   // Buffer messageBody -> [ 'string1', 'string2' ... ]
-  function toUtf8EmptyByteSeparated(messageBody, currentMessage = [], messageList = []) {
+  const toUtf8EmptyByteSeparated = (messageBody, currentMessage = [], messageList = []) => {
     const delimiter = 0x00
     if (!messageBody.length) {
       return messageList
@@ -35,7 +35,7 @@ describe('Message parsing', () => {
     return toUtf8EmptyByteSeparated(rest, currentMessage, messageList)
   }
 
-  function assertIsReadyForQuery(message) {
+  const assertIsReadyForQuery = (message) => {
     assert.strictEqual(message.type[0], 0x5a)
     assert.strictEqual(message.length, 5)
     assert.deepEqual(message.body, new Buffer([0x49]))
