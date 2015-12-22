@@ -36,7 +36,7 @@ dataTypeIdToParseFnc.set(16, parseBoolType)
  * enc: encoding
  * buf: Column data in binary
 **/
-export const parseColumnValue = (dataTypeId, enc, buf) => {
+export const parseValue = (dataTypeId, enc, buf) => {
   const parseFunc = dataTypeIdToParseFnc.get(dataTypeId)
   if (parseFunc === undefined) {
     return buf.toString(enc)
