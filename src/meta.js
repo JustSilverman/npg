@@ -1,2 +1,2 @@
-export const module = () =>
-export const fn = () =>
+export const module = () => {}
+export const fn = () => {}

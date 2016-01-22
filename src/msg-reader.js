@@ -1,5 +1,5 @@
-import assert from 'assert'
-import meta from './meta'
+import * as assert from 'assert'
+import * as meta from './meta'
 
 meta.module(module, {
   doc: `
