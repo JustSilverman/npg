@@ -1,6 +1,7 @@
-##NPG - A postgres client for node (_work in process_)
+# NPG - A postgres client for node (_work in process_)
 
-####Requirements
+## Goals:
+
 * binary protocol parser
 * es6 based
 * promise based
@@ -10,10 +11,11 @@
 * repl friendly?
 * property based tests?
 
-Potential interface:
+Potential high-level interface:
 
 ```
-co(function * () { // coroutine
+co(function * () { // coroutine (matches es2016 async interface)
+
   const cp = yield npg.createConnectionPool({
     /* connection options */
   })
@@ -25,55 +27,95 @@ co(function * () { // coroutine
   const queryResult = yield npg.query(cp, ‘select * from nums’)
   console.log(queryResult.records)
   // => [ { num: 1 }, { num: 2 } ]
+
+}).call()
+```
+
+---
+
+## Plan
+
+Build "bottom-up" - in layers. Layers do not need to be 100% complete, the goal is simply good seperation of concerns and clearly defined boundaries of resposiblity.
+
+---
+
+## Planned Layers
+
+### Binary Protocol Message Parser
+
+The operating system will handle delivering ordered byte sequences between our library and the postgres process - via sockets (tcp and/or local domain sockets). 
+
+Layered on top of that, the node runtime provides us an API that lets us write raw data chunks _to_ the server, and will also emit events when new chunks of data arrive _from_ the server:
+
+```
+$ <<< 'abc' nc -l 2345 & node --eval "
+const net = require('net')
+const sc = net.connect({ port: 2345 }) // socket connection
+sc.on('connect', () => console.log('connected to server'))
+sc.on('data', (buf) => console.log('data from server:', buf))
+sc.on('end', () => console.log('server disconnected'))
+"
+connected to server
+data from server: <Buffer 61 62 63 0a>
+server disconnected
+```
+
+The first problem we need to solve is that these "data chunks" don't correspond to "message frames" sent by the server. One chunk might be half a message, or four messages. So we need a module that transforms a data chunk to a seq of messages - and a possible "remainder" data chunk:
+
+```
+$ < data-chunk node --eval "
+const msgReader = require('./src/msg-reader')
+const buf = new Buffer([
+  // bytes in first msg
+  0x4b, 0x00, 0x00, 0x00, 0x0c, 0x00, 0x00, 0x84, 0x03, 0x48, 0x65, 0xfb, 0x75, 
+  // bytes in second msg
+  0x5a, 0x00, 0x00, 0x00, 0x05, 0x49,
+  // remaining, incomplete message bytes
+  0x11, 0x00, 
+])
+const [firstMsg, rest] = msgReader.read(buf)
+console.log('first message', firstMsg) // { head: <Buffer 4b>, body: <Buffer 00 00 84 03 48 65 fb 75> }
+
+const [msgs, rest] = msgReader.readSeq(buf)
+let n = 1
+for (const msg in msgs) console.log('msg', n++, msg)
+console.log(rest()) // <Buffer 11, 00>
+"
+```
+
+We also need a message serializer, for creating these message frames to send to the server.
+
+### Client using modern flow control
+
+We can use generators/promisess/co-routines/channels to get around some of the problems callbacks and event emitters present for understanding the flow of control in a socket based client.
+
+Ideally we'd have something like:
+
+```
+co(function * (chan) {
+    yield putMsg(chan, 'startup')
+    let res = yield chan.readMsg()
+    // ... do the next thing
 })
 ```
 
-####Supported Postgres Data Types
-| Name                             | Aliases                          | Desc                                | PG OID    | Supported |
-| ---------------------------------|----------------------------------| ------------------------------------| ----------|----------|
-| bigint                           | int8                             | signed eight-byte integer           | 20        | No        |
-| bigserial                        | serial8                          | autoincrementing eight-byte integer | [20]      | No        |
-| bit [ (n) ]                      |                                  | fixed-length bit string             | 1560      | No        |
-| bit varying [ (n) ]              | varbit                           | variable-length bit string          | 1562      | No        |
-| boolean                          | bool                             | logical Boolean (true/false)        | 16        | No        |
-| bytea                            |                                  | binary data ("byte array")          | 17        | No        |
-| character [ (n) ]                | char [ (n) ]                     | fixed-length character string       | 18        | No        |
-| character varying [ (n) ]        | varchar [ (n) ]                  | variable-length character string    | 1043      | No        |
-| cidr                             |                                  | IPv4 or IPv6 network address        | 650       | No        |
-| circle                           |                                  | circle on a plane                   | 718       | No        |
-| date                             |                                  | calendar date (year, month, day)    | 1082      | No        |
-| double precision                 |                                  | double precision float (8 bytes)    | 701       | No        |
-| inet                             |                                  | IPv4 or IPv6 host address           | 869       | No        |
-| integer                          |                                  | signed four-byte integer            | 23        | No        |
-| interval                         |                                  | time span                           | 1186      | No        |
-| json                             |                                  | textual JSON data                   | 114       | No        |
-| jsonb                            |                                  | binary JSON data, decomposed        | 3802      | No        |
-| line                             |                                  | infinite line on a plane            | 628       | No        |
-| lseg                             |                                  | line segment on a plane             | 601       | No        |
-| macaddr                          |                                  | MAC (Media Access Control) address  | 829       | No        |
-| money                            |                                  | currency amount                     | 790       | No        |
-| numeric                          | decimal [ (p, s) ]               | exact numeric of selectable pre.    | 1700      | No        |
-| path                             |                                  | geometric path on a plane           | 602       | No        |
-| pg_lsn                           |                                  | PostgreSQL Log Sequence Number      | 3220      | No        |
-| point                            |                                  | geometric point on a plane          | 600       | No        |
-| polygon                          |                                  | closed geometric path on a plane    | 604       | No        |
-| real                             | float4                           | single precision float (4 bytes)    | 700       | No        |
-| smallint                         | int2                             | signed two-byte integer             | 21        | No        |
-| smallserial                      | serial2                          | autoincrementing two-byte integer   | [21]      | No        |
-| serial                           | serial4                          | autoincrementing two-byte integer   | [21]      | No        |
-| text                             |                                  | variable-length character string    | 25        | No        |
-| time [ (p) ] [ without tz ]      |                                  | time of day (no time zone)          | 1083      | No        |
-| time [ (p) ] with tz             | timetz                           | time of day, including time zone    | 1266      | No        |
-| timestamp [ (p) ] [ without tz ] |                                  | date and time (no time zone)        | 1114      | No        |
-| timestamp [ (p) ] with tz        | timestamptz                      | date and time, including time zone  | 1184      | No        |
-| tsquery                          |                                  | text search query                   | 3615      | No        |
-| tsvector                         |                                  | text search document                | 3614      | No        |
-| txid_snapshot                    |                                  | user-level transaction ID snapshot  | 2970      | No        |
-| uuid                             |                                  | universally unique identifier       | 2950      | No        |
-| xml                              |                                  | XML data                            | 142       | No        |
+### Promise Based End User API
 
+From the end user's perspective, they shouldn't need know how the protocol works, or how connection pooling and write queueing works. So we'll need a layer to translate those API calls to the right operations.
 
-####Capturing binary data from postgres server and client for testing
+---
+
+## Resources
+
+* [core postgres module for parsing and formatting messages](https://github.com/postgres/postgres/blob/71fc49dfe1d99bd83cd99c2e7a39f93e07d19310/src/backend/libpq/pqformat.c)
+* [node-pg connection module](https://github.com/brianc/node-postgres/blob/master/lib/connection.js)
+* [node-pg client module](https://github.com/brianc/node-postgres/blob/master/lib/client.js)
+* [js channels](https://github.com/ubolonton/js-csp/blob/master/doc/basic.md)
+* [rust postgres driver](https://github.com/sfackler/rust-postgres/blob/master/src/lib.rs)
+
+---
+
+## Capturing binary data from postgres server and client for testing
 
 ```
 // create new postgres store
