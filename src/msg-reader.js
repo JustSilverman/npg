@@ -30,12 +30,12 @@ meta.module(module, {
 
 meta.fn('read', {
   doc: 'Attempt to read the first message from a given buffer',
-  shape: 'Buffer, int?, int? -> [ { head: Buffer, body: Buffer }?, Buffer ]',
+  shape: 'Buffer, int?, int?, bool? -> [ { head: Buffer, body: Buffer }?, Buffer ]',
   args: [
-    'buffer with msg data in it, required',
-    'size of header, defaults to 1',
-    'size of length bytes, defaults to 4',
-    'whether the message length include the length bytes, defaults to true',
+    'buffer with msg data in it',
+    'size of header, defaults to 1, optional',
+    'size of length bytes, defaults to 4, optional',
+    'whether the message length include the length bytes, defaults to true, optional',
   ],
   returns: [
     'message record, will be null if no message could be read from buffer',
@@ -43,7 +43,7 @@ meta.fn('read', {
   ],
   examples: {
     '1 byte header, 4 byte length field, 1 byte body, 1 byte overflow': (f) => {
-      const hexBuf = (...args) => new Buffer(args.split(' ').map((s) => parseInt(s, 16)))
+      const hexBuf = (...args) => new Buffer(args.split(' ').map(s => parseInt(s, 16)))
       const [{head, body}, over] = f(hexBuf('0a 00 00 00 01 0b 0c'), 1, 4)
       assert.deepEqual(head, hexBuf('0a'))
       assert.deepEqual(body, hexBuf('0b'))
