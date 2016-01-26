@@ -1,5 +1,6 @@
 import * as assert from 'assert'
 import * as meta from './meta'
+import { hexBuf }  from './hex-buf'
 
 meta.module(module, {
   doc: `
@@ -26,7 +27,6 @@ meta.fn('create', {
   ],
   examples: {
     '1 byte header, 1 byte body': (f) => {
-      const hexBuf = (...args) => new Buffer(args.split(' ').map(s => parseInt(s, 16)))
       const message = f(hexBuf('0a'), hexBuf('0b'))
       assert.deepEqual(message, hexBuf('0a 00 00 00 01 0b'))
     },

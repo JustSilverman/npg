@@ -1,5 +1,6 @@
 import * as assert from 'assert'
 import * as meta from './meta'
+import { hexBuf }  from './hex-buf'
 
 meta.module(module, {
   doc: `
@@ -43,7 +44,6 @@ meta.fn('read', {
   ],
   examples: {
     '1 byte header, 4 byte length field, 1 byte body, 1 byte overflow': (f) => {
-      const hexBuf = (...args) => new Buffer(args.split(' ').map(s => parseInt(s, 16)))
       const [{head, body}, over] = f(hexBuf('0a 00 00 00 01 0b 0c'), 1, 4)
       assert.deepEqual(head, hexBuf('0a'))
       assert.deepEqual(body, hexBuf('0b'))
