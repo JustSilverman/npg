@@ -17,7 +17,7 @@ meta.fn('create', {
   doc: 'Creates a valid message buffer',
   shape: 'Buffer, Buffer, int?, bool? -> Buffer',
   args: [
-    'buffer with head (message type)',
+    'buffer with head (message type), optional',
     'buffer with message body',
     'size of length bytes, defaults to 4, optional',
     'whether the message length include the length bytes, defaults to true, optional'
@@ -36,6 +36,11 @@ meta.fn('create', {
 export const create = (head, body, lengthBytesCount = 4, lengthBytesInclusive = true) => {
   const messageBodylength = lengthBytesInclusive ? body.length + lengthBytesCount : body.length
   const lengthBytes = new Buffer(lengthBytesCount)
-  lengthBytes.writeUInt32BE(messageBodylength, 0)
+  lengthBytes.writeUIntBE(messageBodylength, 0, lengthBytesCount)
+
+  if (!head) {
+    return Buffer.concat([lengthBytes, body])
+  }
+
   return Buffer.concat([head, lengthBytes, body])
 }
