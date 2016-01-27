@@ -1,6 +1,5 @@
 import { deepEqual } from 'assert'
 import { read } from '../../../src/msg-reader'
-import { readFileSync } from 'fs'
 
 describe('Message parser', () => {
   describe('#read', () => {
@@ -53,12 +52,30 @@ describe('Message parser', () => {
         ])
       })
 
-      it('parses a buffer with a partial message.  Remainder is the entire buffer', () => {
+      it('parses a buffer with a partial message body.  Remainder is the entire buffer', () => {
         const input = new Buffer([
           0x01,
           0x00, 0x00, 0x00, 0x0a,
           0x71, 0x6c, 0x00, 0x53,
         ])
+
+        deepEqual(read(input), [
+          null,
+          input
+        ])
+      })
+
+      it('parses a buffer with a partial message head and length bytes.  Remainder is the entire buffer', () => {
+        const input = new Buffer([0x01, 0x00, 0x00])
+
+        deepEqual(read(input), [
+          null,
+          input
+        ])
+      })
+
+      it('parses empty buffer', () => {
+        const input = new Buffer([])
 
         deepEqual(read(input), [
           null,

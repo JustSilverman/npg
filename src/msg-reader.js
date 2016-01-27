@@ -44,7 +44,7 @@ meta.fn('read', {
   ],
   examples: {
     '1 byte header, 4 byte length field, 1 byte body, 1 byte overflow': (f) => {
-      const [{head, body}, over] = f(hexBuf('0a 00 00 00 01 0b 0c'), 1, 4)
+      const [{head, body}, over] = f(hexBuf('0a 00 00 00 05 0b 0c'), 1, 4)
       assert.deepEqual(head, hexBuf('0a'))
       assert.deepEqual(body, hexBuf('0b'))
       assert.deepEqual(over, hexBuf('0c'))
@@ -53,6 +53,10 @@ meta.fn('read', {
 })
 
 export const read = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesInclusive = true) => {
+  if (/* buf is incomplete message */ buf.length < headLength + lengthBytesCount) {
+    return [ null, buf ]
+  }
+
   const headStart = 0
   const headEnd = headStart + headLength
   const lengthStart = headEnd
