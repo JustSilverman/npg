@@ -30,11 +30,12 @@ describe('Message sequence', () => {
           body: hexBuf('03 0b 10')
         }
       ]
+      const expectedRest = hexBuf('00 0a')
 
       const [ messages, rest ] = readSeq(given)
       deepEqual(messages.next().value, expectedMessages[0])
       deepEqual(messages.next().value, expectedMessages[1])
-      deepEqual(rest(), hexBuf('00 0a'))
+      deepEqual(rest(), expectedRest)
       equal(messages.next().done, true)
     })
 
@@ -50,11 +51,12 @@ describe('Message sequence', () => {
           body: hexBuf('03 0b 10')
         }
       ]
+      const expectedRest = hexBuf('')
 
       const [ messages, rest ] = readSeq(given)
       deepEqual(messages.next().value, expectedMessages[0])
       deepEqual(messages.next().value, expectedMessages[1])
-      deepEqual(rest(), hexBuf(''))
+      deepEqual(rest(), expectedRest)
       equal(messages.next().done, true)
     })
 
@@ -70,6 +72,7 @@ describe('Message sequence', () => {
           body: hexBuf('03 0b 10')
         }
       ]
+      const expectedRest = hexBuf('')
 
       const result = []
       const [ messages, rest ] = readSeq(given)
@@ -78,11 +81,18 @@ describe('Message sequence', () => {
       }
       deepEqual(result, expectedMessages)
       deepEqual(messages.next().done, true)
-      deepEqual(rest(), hexBuf(''))
+      deepEqual(rest(), expectedRest)
     })
 
     it('reads no messages and calls rest', () => {
       const given = hexBuf('')
+      const expectedRest = given
+
+      const [ messages, rest ] = readSeq(given)
+      deepEqual(rest(), expectedRest)
+      equal(messages.next().done, true)
+    })
+
       const [ messages, rest ] = readSeq(given)
       deepEqual(rest(), hexBuf(''))
       equal(messages.next().done, true)
