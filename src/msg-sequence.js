@@ -43,9 +43,14 @@ export const readSeq = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesIn
   let remainder = buf
 
   const seqGenerator = function* () {
-    while (remainder.length) {
-      [ message, remainder ] = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
-      yield message
+    [ message, remainder ] = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
+
+    while (message) {
+      message = yield message
+
+      const tuple = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
+      message   = tuple[0]
+      remainder = tuple[1]
     }
   }
 

@@ -84,18 +84,37 @@ describe('Message sequence', () => {
       deepEqual(rest(), expectedRest)
     })
 
-    it('reads no messages and calls rest', () => {
+    it('reads an empty buffer', () => {
       const given = hexBuf('')
       const expectedRest = given
 
       const [ messages, rest ] = readSeq(given)
-      deepEqual(rest(), expectedRest)
       equal(messages.next().done, true)
+      deepEqual(rest(), expectedRest)
     })
 
+    it('reads a large (full head) partial message', () => {
+      const given = hexBuf('0a 00 00 00 10 12 0a 0b 01')
+      const expectedRest = given
+
       const [ messages, rest ] = readSeq(given)
-      deepEqual(rest(), hexBuf(''))
+      for (let msg of messages) {
+        throw new Error('Expected to not iterate over no complete messages')
+      }
       equal(messages.next().done, true)
+      deepEqual(rest(), expectedRest)
+    })
+
+    it('reads a small (partial head) partial message', () => {
+      const given = hexBuf('0a 00 00')
+      const expectedRest = given
+
+      const [ messages, rest ] = readSeq(given)
+      for (let msg of messages) {
+        throw new Error('Expected to not iterate over no complete messages')
+      }
+      equal(messages.next().done, true)
+      deepEqual(rest(), expectedRest)
     })
   })
 })
