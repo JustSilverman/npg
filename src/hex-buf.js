@@ -33,3 +33,5 @@ export const hexBuf = (hexAsString) => {
   if (hexAsString.length === 0) return new Buffer([])
   return new Buffer(hexAsString.split(' ').map(s => parseInt(s, 16)))
 }
+
+export default hexBuf

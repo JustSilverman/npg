@@ -8,6 +8,8 @@ meta.module(module, {
 
     Creates a message with the correct length bytes (inclusive of length bytes)
 
+        > create(hexBuf('11'), hexBuf('22 22') )
+        <Buffer 11 00 00 00 06 22 22>
   `,
 })
 
@@ -44,3 +46,5 @@ export const create = (head, body, lengthBytesCount = 4, lengthBytesInclusive = 
 
   return Buffer.concat([head, lengthBytes, body])
 }
+
+export default create
