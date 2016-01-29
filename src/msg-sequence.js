@@ -13,7 +13,7 @@ meta.module(module, {
 
 // -
 
-meta.fn('read', {
+meta.fn('readSeq', {
   doc: 'Read a sequence of messages from a buffer',
   shape: 'buffer, int?, int?, bool? -> [ iterator?, function ]',
   args: [
