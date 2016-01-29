@@ -46,11 +46,9 @@ export const readSeq = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesIn
     [ message, remainder ] = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
 
     while (message) {
-      yield message
+      yield message;
 
-      const tuple = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
-      message   = tuple[0]
-      remainder = tuple[1]
+      [ message, remainder ] = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
     }
   }
 
