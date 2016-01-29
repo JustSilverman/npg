@@ -63,3 +63,5 @@ export const readSeq = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesIn
     }
   ]
 }
+
+export default readSeq
