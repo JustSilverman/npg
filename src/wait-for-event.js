@@ -19,7 +19,7 @@ meta.fn('waitForEvent', {
   args: [
     'event emitter',
     'event type that causes promise to be resolved',
-    'timeout duration in ms'
+    'timeout duration in ms, optional'
   ],
   returns: [
     'Promise',
@@ -52,15 +52,15 @@ export const waitForEvent = (emitter, event, timeoutDuration = 1000) => {
     }, timeoutDuration)
 
 
-    const handleEvent = (arg) => {
-      resolve(arg)
-      removeListeners()
+    const handler = (func) => {
+      return (arg) => {
+        func(arg)
+        removeListeners()
+        clearTimeout(timeoutId)
+      }
     }
-
-    const handleError = (err) => {
-      reject(err)
-      removeListeners()
-    }
+    const handleEvent = handler(resolve)
+    const handleError = handler(reject)
 
     const removeListeners = () => {
       emitter.removeListener(event, handleEvent)
