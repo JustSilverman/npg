@@ -14,7 +14,7 @@ describe('write-data', () => {
           but also causes the cb (resolve in this case) passed to #write to be
           invoked, which is not correct
          */
-        if (error) return writer.emit('error', error)
+        if (error) return cb(error)
 
         writer._flushed = true
         cb()
