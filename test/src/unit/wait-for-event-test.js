@@ -60,10 +60,10 @@ describe('wait-for-event', () => {
     it('rejects the promise with a custom timeout error if the timeout is reached', (done) => {
       const givenEmitter = new EventEmitter()
       const givenEventType = 'data'
-      const givenDurationUntilEvent = 500
+      const givenDurationUntilEvent = 200
       const expectedError = new Error('Timeout of 400ms reached waiting for ' + givenEventType + ' to be emitted.')
 
-      waitForEvent(givenEmitter, givenEventType, 400)
+      waitForEvent(givenEmitter, givenEventType, 100)
         .then(fail)
         .catch(error => {
           deepEqual(error, expectedError)
