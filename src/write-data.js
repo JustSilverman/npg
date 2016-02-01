@@ -50,14 +50,13 @@ export const writeData = (writable, buf, timeoutDuration = 1000) => {
       reject(TIMEOUT_ERROR)
     }, timeoutDuration)
 
-    writable.write(buf, (err) => {
-      if (err) {
-        reject(err)
-        return
-      }
-
-      resolve()
+    writable.once('error', err => {
+      clearTimeout(timeoutId)
+      reject(err)
+      return
     })
+
+    writable.write(buf, null, resolve)
   })
 }
 
