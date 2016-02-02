@@ -9,11 +9,6 @@ describe('write-data', () => {
     writer._flushed = false //only for testing
     writer._write = (buf, enc, cb) => {
       setTimeout(() => {
-         /*
-          Doesn't feel right. Assumed it would be cb(error). That emits an error,
-          but also causes the cb (resolve in this case) passed to #write to be
-          invoked, which is not correct
-         */
         if (error) return cb(error)
 
         writer._flushed = true
