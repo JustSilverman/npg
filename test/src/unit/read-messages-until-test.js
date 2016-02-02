@@ -2,23 +2,9 @@ import { equal, deepEqual, fail } from 'assert'
 import { Readable } from 'stream';
 import { hexBuf } from '../../../src/hex-buf'
 import { readMessagesUntil } from '../../../src/read-messages-until'
+import createMockReader from '../../helpers/mock-reader'
 
 describe('read-messages-until', () => {
-  const createMockReader = (messages = []) => {
-    const iter = messages[Symbol.iterator]()
-    const reader = new Readable()
-    reader._read = () => {
-      const next = iter.next()
-      if (next.done) {
-        reader.push(null)
-        return
-      }
-      reader.push(next.value)
-    }
-
-    return reader
-  }
-
   describe('#readMessagesUntil', () => {
     it('returns promise that resolves with all messages once predicate is satisfied', () => {
       const givenMessages = [
