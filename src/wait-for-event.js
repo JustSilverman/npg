@@ -69,8 +69,8 @@ export const waitForEvent = (emitter, event, timeoutDuration = 1000) => {
 
 
     emitter
-      .on(event, handleEvent)
-      .on('error', handleError)
+      .once(event, handleEvent)
+      .once('error', handleError)
   })
 }
 
