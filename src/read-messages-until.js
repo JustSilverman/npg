@@ -2,7 +2,6 @@ import * as assert from 'assert'
 import { Readable, Writable } from 'stream'
 import * as meta from './meta'
 import { hexBuf }  from './hex-buf'
-import { read } from './msg-reader'
 
 meta.module(module, {
   doc: `
@@ -24,7 +23,8 @@ meta.fn('readMessagesUntil', {
   returns: [
     'Promise',
       'resolves when predicate holds',
-      'rejected if no more data is available and predicate has not been met'
+      'rejected if no more data is available and predicate has not been met',
+      'rejected if reader emits an error'
   ],
   examples: {
     'resolve the promise when predicate holds': (f) => {
@@ -50,13 +50,11 @@ export const readMessagesUntil = (readable, predicate) => {
   return new Promise((resolve, reject) => {
     let allData = []
 
-    const allDataAsBuf = () => Buffer.concat(allData)
-
     const collector = new Writable()
     collector._write = (chunk, enc, cb) => {
       allData.push(chunk)
-      if (predicate(chunk, allDataAsBuf)) {
-        resolve(allDataAsBuf())
+      if (predicate(chunk, () => Buffer.concat(allData))) {
+        resolve(Buffer.concat(allData))
         return false
       }
 
