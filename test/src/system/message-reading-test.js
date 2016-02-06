@@ -3,6 +3,9 @@ import { read } from '../../../src/msg-reader'
 import { readFileSync } from 'fs'
 
 describe('Message parsing', () => {
+
+  // todo: use readSeq here?
+
   // Buffer buf -> [ message1, message2 ... ]
   // message -> [ { head: Buffer, length: Int, body: Buffer}, Buffer remainder ]
   const parseMessages = (buf, messages = []) => {
@@ -14,6 +17,9 @@ describe('Message parsing', () => {
     messages.push(message)
     return parseMessages(remainder, messages)
   }
+
+  // todo: factor out to specific test for parsing the *body* of this message type?
+  // also, this is probably not a test helper but belongs in the library itself
 
   // Buffer messageBody -> [ 'string1', 'string2' ... ]
   const toUtf8EmptyByteSeparated = (messageBody, currentMessage = [], messageList = []) => {
@@ -34,6 +40,8 @@ describe('Message parsing', () => {
 
     return toUtf8EmptyByteSeparated(rest, currentMessage, messageList)
   }
+
+  // todo: also something that is part of the lib itself
 
   const assertIsReadyForQuery = (message) => {
     assert.strictEqual(message.head[0], 0x5a)

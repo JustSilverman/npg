@@ -5,9 +5,32 @@ import { hexBuf }  from './hex-buf'
 
 meta.module(module, {
   doc: `
-    # Binary message sequence
+    # Binary message sequence reader
 
-    Creates a message iterator from a buffer
+    Like binary message reader, but, given a buffer returns an iterator of all the messages in it, and a function that can be called to retreive the "overflow" bytes.
+
+
+    For example, given a buffer with two messages and 3 bytes of overflow in it:
+
+        > let b = hexBuf('0a 00 00 00 05 0b 0c 00 00 00 07 03 0b 10 0a 00 01')
+        <Buffer 0a 00 00 00 05 0b 0c 00 00 00 07 03 0b 10 0a 00 01>
+
+    Binary messsage reader can read the first messsage:
+
+        > let [firstMessage, overflow] = read(b)
+        > firstMessage
+        { head: <Buffer 0a>, body: <Buffer 0b> }
+        > overflow
+        <Buffer 0c 00 00 00 07 03 0b 10 0a 00 01>
+
+    This module can read all the messages:
+
+        > let [messages, rest] = readSeq(b)
+        > [...messages] // iterable
+        [ { head: <Buffer 0a>, body: <Buffer 0b> },
+          { head: <Buffer 0c>, body: <Buffer 03 0b 10> } ]
+        > rest() // fn that must be called
+        <Buffer 0a 00 01>
   `,
 })
 

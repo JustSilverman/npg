@@ -36,15 +36,14 @@ meta.fn('create', {
 })
 
 export const create = (head, body, lengthBytesCount = 4, lengthBytesInclusive = true) => {
-  const messageBodylength = lengthBytesInclusive ? body.length + lengthBytesCount : body.length
+  const messageBodylength = lengthBytesInclusive
+    ? body.length + lengthBytesCount
+    : body.length
   const lengthBytes = new Buffer(lengthBytesCount)
   lengthBytes.writeUIntBE(messageBodylength, 0, lengthBytesCount)
-
-  if (!head) {
-    return Buffer.concat([lengthBytes, body])
-  }
-
-  return Buffer.concat([head, lengthBytes, body])
+  const segments = [head, lengthBytes, body]
+  if (!head) segments.shift()
+  return Buffer.concat(segments)
 }
 
 export default create
