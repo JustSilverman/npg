@@ -15,7 +15,7 @@ meta.module(module, {
 // -
 
 meta.fn('create', {
-  doc: 'Create a buffer from a string with space separated hex digit pairs',
+  doc: 'Create a buffer from a string with space-separated hex digit pairs',
   shape: 'String -> Buffer',
   args: [
     'string of space delimited hex pairs'
