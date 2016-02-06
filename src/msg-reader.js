@@ -63,7 +63,7 @@ export const read = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesInclu
   const lengthEnd = headEnd + lengthBytesCount
   const bodyStart = lengthEnd
   const lengthBytes = buf.slice(lengthStart, lengthEnd)
-  const bodyLength = lengthBytes.readUInt32BE() - (lengthBytesInclusive ? lengthBytesCount : 0)
+  const bodyLength = lengthBytes.readUIntBE(0, lengthBytesCount) - (lengthBytesInclusive ? lengthBytesCount : 0)
   const bodyEnd = bodyStart + bodyLength
   const headBytes = buf.slice(headStart, headEnd)
   if (/* buf is incomplete message */ bodyEnd > buf.length) return [ null, buf ]
