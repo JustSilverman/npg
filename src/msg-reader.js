@@ -59,13 +59,18 @@ export const read = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesInclu
 
   const headStart = 0
   const headEnd = headStart + headLength
+  const headBytes = buf.slice(headStart, headEnd)
+  if (headBytes.length === buf.length) {
+    return [ { head: headBytes, body: hexBuf('') }, hexBuf('') ]
+  }
+
   const lengthStart = headEnd
   const lengthEnd = headEnd + lengthBytesCount
   const bodyStart = lengthEnd
   const lengthBytes = buf.slice(lengthStart, lengthEnd)
   const bodyLength = lengthBytes.readUIntBE(0, lengthBytesCount) - (lengthBytesInclusive ? lengthBytesCount : 0)
   const bodyEnd = bodyStart + bodyLength
-  const headBytes = buf.slice(headStart, headEnd)
+
   if (/* buf is incomplete message */ bodyEnd > buf.length) return [ null, buf ]
   return [ {
     head: headBytes.length > 0 ? headBytes : null,

@@ -1,5 +1,6 @@
 import { deepEqual } from 'assert'
 import { read } from '../../../src/msg-reader'
+import { hexBuf } from '../../../src/hex-buf'
 
 describe('Message parser', () => {
   describe('#read', () => {
@@ -141,6 +142,64 @@ describe('Message parser', () => {
           input
         ])
       })
+    })
+  })
+
+  describe('using non-default arguments', () => {
+    it('headless message', () => {
+      const givenInput = hexBuf('00 00 00 06 0a 0b 01')
+      const expectedResult = [ { head: null, body: hexBuf('0a 0b') }, hexBuf('01') ]
+
+      deepEqual(read(givenInput, 0), expectedResult)
+    })
+
+    it('single byte message', () => {
+      const givenInput = hexBuf('0e')
+      const expectedResult = [ { head: hexBuf('0e'), body: hexBuf('') }, hexBuf('') ]
+
+      deepEqual(read(givenInput, 1, 0, false), expectedResult)
+    })
+
+    it('head of length 3', () => {
+      const givenInput = hexBuf('0a 0b 0c 00 00 00 04 01')
+      const expectedResult = [ { head: hexBuf('0a 0b 0c'), body: hexBuf('') }, hexBuf('01') ]
+
+      deepEqual(read(givenInput, 3), expectedResult)
+    })
+
+    it('headless and length bytes count of 2', () => {
+      const givenInput = hexBuf('00 05 0a 0e 0d 0f')
+      const expectedResult = [ { head: null, body: hexBuf('0a 0e 0d') }, hexBuf('0f') ]
+
+      deepEqual(read(givenInput, 0, 2), expectedResult)
+    })
+
+    it('length bytes count of 2', () => {
+      const givenInput = hexBuf('0a 00 03 01, 0a')
+      const expectedResult = [ { head: hexBuf('0a'), body: hexBuf('01') }, hexBuf('0a') ]
+
+      deepEqual(read(givenInput, 1, 2), expectedResult)
+    })
+
+    it('length bytes exclusive', () => {
+      const givenInput = hexBuf('0a 00 00 00 02 0d 0e 0d 0e')
+      const expectedResult = [ { head: hexBuf('0a'), body: hexBuf('0d 0e') }, hexBuf('0d 0e') ]
+
+      deepEqual(read(givenInput, 1, 4, false), expectedResult)
+    })
+
+    it('length bytes count of 2 and length bytes exclusive', () => {
+      const givenInput = hexBuf('0a 00 03 0a 0b 0c 0d')
+      const expectedResult = [ { head: hexBuf('0a'), body: hexBuf('0a, 0b 0c') }, hexBuf('0d') ]
+
+      deepEqual(read(givenInput, 1, 2, false), expectedResult)
+    })
+
+    it('headless, length bytes count of 2 and length bytes exclusive', () => {
+      const givenInput = hexBuf('00 03 0a 0b 0c 0d')
+      const expectedResult = [ { head: null, body: hexBuf('0a, 0b 0c') }, hexBuf('0d') ]
+
+      deepEqual(read(givenInput, 0, 2, false), expectedResult)
     })
   })
 })
