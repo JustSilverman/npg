@@ -2,7 +2,7 @@ import * as assert from 'assert'
 import { Readable, Writable } from 'stream'
 import * as meta from './meta'
 import { hexBuf }  from './hex-buf'
-import { read } from './msg-reader'
+import { read as readMsg } from './msg-reader'
 
 meta.module(module, {
   doc: `
@@ -44,32 +44,46 @@ meta.fn('readMessagesUntil', {
   },
 })
 
-export const readOneMessage = (readable, headLength = 1, lengthBytesCount = 4, lengthBytesInclusive = true) => {
+export const readOneMessage = (readable, headLength = 1, lengthBytesCount = 4, lengthBytesInclusive = true, timeoutDuration = 1000) => {
+  const TIMEOUT_ERROR = new Error('Timeout of ' + timeoutDuration + ' ms reached waiting to read one message.')
+
   return new Promise((resolve, reject) => {
-    let completeMessage
+    const timeoutId = setTimeout(() => {
+      reject(TIMEOUT_ERROR)
+      removeListenersAndTimers()
+    }, timeoutDuration)
+
     let partialMessage = hexBuf('')
 
-    const collector = new Writable()
-    collector._write = (chunk, enc, cb) => {
-      const data = Buffer.concat([partialMessage, chunk]);
-      [ completeMessage, partialMessage ] = read(data, headLength, lengthBytesCount, lengthBytesInclusive)
+    const read = () => {
+      let chunk
+      while (null !== (chunk = readable.read())) {
+        partialMessage = Buffer.concat([partialMessage, chunk]);
+        let [ completeMessage, remainder ] = readMsg(partialMessage, headLength, lengthBytesCount, lengthBytesInclusive)
 
-      if (completeMessage) {
-        resolve(completeMessage)
-        return false
+        if (completeMessage) {
+          removeListenersAndTimers()
+          readable.unshift(remainder)
+
+          return resolve(completeMessage)
+        }
       }
+    }
 
-      cb()
+    const handleError = () => {
+      removeListenersAndTimers()
+      reject(new Error('Error attempting to read message.'))
+    }
+
+    const removeListenersAndTimers = () => {
+      clearTimeout(timeoutId)
+      readable.removeListener('error', handleError)
+      readable.removeListener('readable', read)
     }
 
     readable
-      .once('end', function handleEnd() {
-        reject(new Error('Failed to read complete message.'))
-      })
-      .once('error', function handleError() {
-        reject(new Error('Error attempting to read message.'))
-      })
-      .pipe(collector)
+      .once('error', handleError)
+      .on('readable', read)
   })
 }
 
