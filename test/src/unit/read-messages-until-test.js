@@ -3,6 +3,7 @@ import { Readable } from 'stream';
 import { hexBuf } from '../../../src/hex-buf'
 import { readMessagesUntil } from '../../../src/read-messages-until'
 import createMockReader from '../../helpers/mock-reader'
+import equalErrors from '../../helpers/equal-errors'
 
 describe('read-messages-until', () => {
   describe('#readMessagesUntil', () => {
@@ -37,7 +38,7 @@ describe('read-messages-until', () => {
 
       return readMessagesUntil(reader, givenPredicate)
         .then(fail)
-        .catch(err => deepEqual(err, expectedError))
+        .catch(err => equalErrors(err, expectedError))
     })
 
     it('returns promise that rejects with an error if readable emits an error', () => {
@@ -55,7 +56,7 @@ describe('read-messages-until', () => {
 
       return readMessagesUntil(reader, givenPredicate)
         .then(fail)
-        .catch(err => deepEqual(err, expectedError))
+        .catch(err => equalErrors(err, expectedError))
     })
 
     it('no additional data should read after promise is resolved')

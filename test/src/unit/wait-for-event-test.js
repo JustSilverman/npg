@@ -2,6 +2,7 @@ import { equal, deepEqual, fail } from 'assert'
 import { EventEmitter } from 'events';
 import { hexBuf } from '../../../src/hex-buf'
 import { waitForEvent } from '../../../src/wait-for-event'
+import equalErrors from '../../helpers/equal-errors'
 
 describe('wait-for-event', () => {
   describe('#waitForEvent', () => {
@@ -32,7 +33,7 @@ describe('wait-for-event', () => {
       waitForEvent(givenEmitter, givenEventType)
         .then(fail)
         .catch(error => {
-          deepEqual(error, expectedError)
+          equalErrors(error, expectedError)
           done()
         })
       deepEqual(givenEmitter.listenerCount(givenEventType), 1)
@@ -50,7 +51,7 @@ describe('wait-for-event', () => {
       waitForEvent(givenEmitter, givenEventType)
         .then(fail)
         .catch(error => {
-          deepEqual(error, expectedError)
+          equalErrors(error, expectedError)
           done()
         })
 
@@ -61,12 +62,12 @@ describe('wait-for-event', () => {
       const givenEmitter = new EventEmitter()
       const givenEventType = 'data'
       const givenDurationUntilEvent = 200
-      const expectedError = new Error('Timeout of 400ms reached waiting for ' + givenEventType + ' to be emitted.')
+      const expectedError = new Error('Timeout of 100ms reached waiting for ' + givenEventType + ' to be emitted.')
 
       waitForEvent(givenEmitter, givenEventType, 100)
         .then(fail)
         .catch(error => {
-          deepEqual(error, expectedError)
+          equalErrors(error, expectedError)
           done()
         })
 
@@ -102,7 +103,7 @@ describe('wait-for-event', () => {
       waitForEvent(givenEmitter, givenEventType)
         .then(fail)
         .catch(error => {
-          deepEqual(error, expectedError)
+          equalErrors(error, expectedError)
           deepEqual(givenEmitter.listenerCount(givenEventType), 0)
           deepEqual(givenEmitter.listenerCount('error'), 0)
           done()
@@ -122,7 +123,7 @@ describe('wait-for-event', () => {
       waitForEvent(givenEmitter, givenEventType)
         .then(fail)
         .catch(error => {
-          deepEqual(error, expectedError)
+          equalErrors(error, expectedError)
           deepEqual(givenEmitter.listenerCount(givenEventType), 0)
           deepEqual(givenEmitter.listenerCount('error'), 0)
           done()

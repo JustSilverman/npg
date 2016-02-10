@@ -43,7 +43,7 @@ meta.fn('waitForEvent', {
 })
 
 export const waitForEvent = (emitter, event, timeoutDuration = 1000) => {
-  const TIMEOUT_ERROR = new Error('Timeout of ' + timeoutDuration + ' ms reached waiting for ' + event + ' to be emitted.')
+  const TIMEOUT_ERROR = new Error('Timeout of ' + timeoutDuration + 'ms reached waiting for ' + event + ' to be emitted.')
 
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {

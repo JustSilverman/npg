@@ -2,6 +2,7 @@ import { equal, deepEqual, fail } from 'assert'
 import { Writable } from 'stream';
 import { hexBuf } from '../../../src/hex-buf'
 import { writeData } from '../../../src/write-data'
+import equalErrors from '../../helpers/equal-errors'
 
 describe('write-data', () => {
   const createMockWriter = (error, timeoutDuration = 0) => {
@@ -38,9 +39,7 @@ describe('write-data', () => {
 
       return writeData(writer, givenData)
         .then(fail)
-        .catch(err => {
-          deepEqual(err, givenError)
-        })
+        .catch(err => equalErrors(err, givenError))
     })
 
     it('rejects the promise with a timeout error if the timeout is reached', () => {
@@ -51,18 +50,18 @@ describe('write-data', () => {
 
       return writeData(writer, givenData)
         .then(fail)
-        .catch(err => deepEqual(err, expectedError))
+        .catch(err => equalErrors(err, expectedError))
     })
 
     it('rejects the promise with a custom timeout error if the timeout is reached', () => {
       const givenData = hexBuf('00 11')
       const writer = createMockWriter(null, 20)
-      const expectedError = new Error('Timeout of 400 ms reached waiting data to be flushed.')
+      const expectedError = new Error('Timeout of 10 ms reached waiting data to be flushed.')
       equal(writer._flushed, false)
 
       return writeData(writer, givenData, 10)
         .then(fail)
-        .catch(err => deepEqual(err, expectedError))
+        .catch(err => equalErrors(err, expectedError))
     })
   })
 })
