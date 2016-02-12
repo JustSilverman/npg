@@ -5,7 +5,7 @@ import { readOneMessage } from '../../../src/read-one-message'
 import createMockReader from '../../helpers/mock-reader'
 import equalErrors from '../../helpers/equal-errors'
 
-describe('read-one-message', () => {
+describe.only('read-one-message', () => {
   describe('#readOneMessage', () => {
     it('returns promise that resolves one message once a message has been read', () => {
       const givenChunks = [ hexBuf('0a'), hexBuf('00 00'), hexBuf('00'), hexBuf('05'), hexBuf('0b 02'), hexBuf('0a 02') ]
@@ -17,6 +17,25 @@ describe('read-one-message', () => {
         .then(result => {
           deepEqual(result, expectedMessage)
           deepEqual(givenReader.read(), expectedRemainder)
+        })
+        .catch(fail)
+    })
+
+    it('can be called twice on the same readable', () => {
+      const givenChunks = [ hexBuf('0a 00 00 00 04'), hexBuf('0b 00 00 00 05 0c') ]
+      const givenReader = createMockReader(givenChunks)
+      const expectedMessage1 = { head: hexBuf('0a'), body: hexBuf('') }
+      const expectedMessage2 = { head: hexBuf('0b'), body: hexBuf('0c') }
+
+      return readOneMessage(givenReader)
+        .then(result => {
+          deepEqual(result, expectedMessage1)
+        })
+        .then(() => {
+          return readOneMessage(givenReader)
+        })
+        .then(result => {
+          deepEqual(result, expectedMessage2)
         })
         .catch(fail)
     })
