@@ -14,19 +14,21 @@ const mockServer = (rChan, wChan) => {
     msg = yield csp.take(rChan)
     equal(msg, 'second startup')
 
-    yield csp.put(wChan, 'info about the server ...')
+    yield csp.put(wChan, 'parameter status message 1')
+    yield csp.put(wChan, 'parameter status message 2')
+    yield csp.put(wChan, 'parameter status message 3')
+    yield csp.put(wChan, 'backend key data')
     yield csp.put(wChan, 'ready for query')
-    yield csp.put(wChan, 'ready for query2')
-    yield csp.put(wChan, 'ready for query3')
-
 
     while((msg = yield csp.take(rChan)) !== 'close') {
       let queryMsg = msg
-      console.log('done')
+      console.log('executing query ', queryMsg)
       // do query ...
-      // write result head
-      // write result rows
-      // write result close
+      yield csp.put(wChan, 'header: expecting 3 rows')
+      yield csp.put(wChan, 'query row 1')
+      yield csp.put(wChan, 'query row 2')
+      yield csp.put(wChan, 'query row 3')
+      yield csp.put(wChan, 'query close')
     }
   })
 }
@@ -61,11 +63,14 @@ const client = (rChan, wChan) => {
     }
 
     yield csp.put(wChan, 'first query')
+    let row
     const queryRows = []
     const queryHeader = yield csp.take(rChan)
     while((row = yield csp.take(rChan)) !== 'query close') {
       queryRows.push(row)
     }
+    console.log('query header ', queryHeader)
+    console.log('query rows ', queryRows)
 
     yield csp.put(wChan, 'close')
   })
