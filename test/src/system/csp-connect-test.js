@@ -1,6 +1,6 @@
 import { equal } from 'assert'
 import csp from 'js-csp'
-import { asDesc as messages } from '../test/fixtures/messages'
+import { asDesc as messages } from '../../fixtures/messages'
 
 const serverToClientMsgs = csp.chan()
 const clientToServerMsgs = csp.chan()
