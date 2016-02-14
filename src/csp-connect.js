@@ -1,5 +1,6 @@
 import { equal } from 'assert'
 import csp from 'js-csp'
+import { asDesc as messages } from '../test/fixtures/messages'
 
 const serverToClientMsgs = csp.chan()
 const clientToServerMsgs = csp.chan()
@@ -8,49 +9,48 @@ const mockServer = (rChan, wChan) => {
   return csp.go(function * () {
     let msg
     msg = yield csp.take(rChan)
-    equal(msg, 'first startup')
+    equal(msg, messages.get('firstStartup'))
 
-    yield csp.put(wChan, 'session confirm')
+    yield csp.put(wChan, messages.get('sessionConfirm'))
     msg = yield csp.take(rChan)
-    equal(msg, 'second startup')
+    equal(msg, messages.get('secondStartup'))
 
-    yield csp.put(wChan, 'parameter status message 1')
-    yield csp.put(wChan, 'parameter status message 2')
-    yield csp.put(wChan, 'parameter status message 3')
-    yield csp.put(wChan, 'backend key data')
-    yield csp.put(wChan, 'ready for query')
+    yield csp.put(wChan, messages.get('parameterStatus') + ': 1')
+    yield csp.put(wChan, messages.get('parameterStatus') + ': 2')
+    yield csp.put(wChan, messages.get('parameterStatus') + ': 3')
+    yield csp.put(wChan, messages.get('backendKeyData'))
+    yield csp.put(wChan, messages.get('readyForQuery'))
 
-    while((msg = yield csp.take(rChan)) !== 'close') {
+    while((msg = yield csp.take(rChan)) !== messages.get('exit')) {
       let queryMsg = msg
       console.log('executing query ', queryMsg)
       // do query ...
-      yield csp.put(wChan, 'header: expecting 3 rows')
-      yield csp.put(wChan, 'query row 1')
-      yield csp.put(wChan, 'query row 2')
-      yield csp.put(wChan, 'query row 3')
-      yield csp.put(wChan, 'query close')
+      yield csp.put(wChan, messages.get('queryHead'))
+      yield csp.put(wChan, messages.get('queryRow') + ': 1')
+      yield csp.put(wChan, messages.get('queryRow') + ': 2')
+      yield csp.put(wChan, messages.get('queryRow') + ': 3')
+      yield csp.put(wChan, messages.get('queryClose'))
     }
   })
 }
 
 const client = (rChan, wChan) => {
   return csp.go(function * () {
-    console.log('client started')
     let msg
-    yield csp.put(wChan, 'first startup')
+    yield csp.put(wChan, messages.get('firstStartup'))
     console.log('wrote first startup')
 
     msg = yield csp.take(rChan)
-    if (msg !== 'session confirm') {
+    if (msg !== messages.get('sessionConfirm')) {
       throw new Error('Expected session confirm message, but received ', msg)
     }
 
-    yield csp.put(wChan, 'second startup')
+    yield csp.put(wChan, messages.get('secondStartup'))
     console.log('wrote second startup')
 
     const paramaterStatusMessages = []
     msg = yield csp.take(rChan)
-    while(msg !== 'backend key data') {
+    while(msg !== messages.get('backendKeyData')) {
       console.log('paramaterStatusMessages', msg)
       paramaterStatusMessages.push(msg)
       msg = yield csp.take(rChan)
@@ -58,21 +58,22 @@ const client = (rChan, wChan) => {
 
     const backendKeyDataMsg = msg
     msg = yield csp.take(rChan)
-    if (msg !== 'ready for query') {
+    if (msg !== messages.get('readyForQuery')) {
       throw new Error('Expected ready for query message, but received ', msg)
     }
 
-    yield csp.put(wChan, 'first query')
+    yield csp.put(wChan, messages.get('query'))
+
     let row
     const queryRows = []
     const queryHeader = yield csp.take(rChan)
-    while((row = yield csp.take(rChan)) !== 'query close') {
+    while((row = yield csp.take(rChan)) !== messages.get('queryClose')) {
       queryRows.push(row)
     }
     console.log('query header ', queryHeader)
     console.log('query rows ', queryRows)
 
-    yield csp.put(wChan, 'close')
+    yield csp.put(wChan, messages.get('exit'))
   })
 }
 
