@@ -94,7 +94,7 @@ describe('Message parser', () => {
 
         deepEqual(read(input, 0), [
           {
-            head: null,
+            head: new Buffer([]),
             body: new Buffer([0x03])
           },
           new Buffer([])
@@ -109,7 +109,7 @@ describe('Message parser', () => {
 
         deepEqual(read(input, 0), [
           {
-            head: null,
+            head: new Buffer([]),
             body: new Buffer([0x71, 0x6c, 0x00, 0x53])
           },
           new Buffer([])
@@ -124,7 +124,7 @@ describe('Message parser', () => {
 
         deepEqual(read(input, 0), [
           {
-            head: null,
+            head: new Buffer([]),
             body: new Buffer([0x71, 0x6c, 0x00])
           },
           new Buffer([0x53])
@@ -148,7 +148,7 @@ describe('Message parser', () => {
   describe('using non-default arguments', () => {
     it('headless message', () => {
       const givenInput = hexBuf('00 00 00 06 0a 0b 01')
-      const expectedResult = [ { head: null, body: hexBuf('0a 0b') }, hexBuf('01') ]
+      const expectedResult = [ { head: new Buffer([]), body: hexBuf('0a 0b') }, hexBuf('01') ]
 
       deepEqual(read(givenInput, 0), expectedResult)
     })
@@ -169,7 +169,7 @@ describe('Message parser', () => {
 
     it('headless and length bytes count of 2', () => {
       const givenInput = hexBuf('00 05 0a 0e 0d 0f')
-      const expectedResult = [ { head: null, body: hexBuf('0a 0e 0d') }, hexBuf('0f') ]
+      const expectedResult = [ { head: new Buffer([]), body: hexBuf('0a 0e 0d') }, hexBuf('0f') ]
 
       deepEqual(read(givenInput, 0, 2), expectedResult)
     })
@@ -197,7 +197,7 @@ describe('Message parser', () => {
 
     it('headless, length bytes count of 2 and length bytes exclusive', () => {
       const givenInput = hexBuf('00 03 0a 0b 0c 0d')
-      const expectedResult = [ { head: null, body: hexBuf('0a, 0b 0c') }, hexBuf('0d') ]
+      const expectedResult = [ { head: new Buffer([]), body: hexBuf('0a, 0b 0c') }, hexBuf('0d') ]
 
       deepEqual(read(givenInput, 0, 2, false), expectedResult)
     })

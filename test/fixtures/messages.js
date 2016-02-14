@@ -4,13 +4,13 @@ export const messages = new Map()
 
 messages.set('firstStartup', {
   buf: hexBuf('00 00 00 08 04 d2 16 2f'),
-  pgMessage: { head: null, body: hexBuf('04 d2 16 2f') },
+  pgMessage: { head: hexBuf(''), body: hexBuf('04 d2 16 2f') },
   desc: 'first startup'
 })
 
 messages.set('secondStartup', {
   buf: hexBuf('00 00 00 46 00 03 00 00 75 73 65 72 00 6a 75 73 74 69 6e 73 69 6c 76 65 72 6d 61 6e 00 64 61 74 61 62 61 73 65 00 70 6f 73 74 67 72 65 73 00 61 70 70 6c 69 63 61 74 69 6f 6e 5f 6e 61 6d 65 00 70 73 71 6c 00 00'),
-  pgMessage: { head: null, body: hexBuf('00 03 00 00 75 73 65 72 00 6a 75 73 74 69 6e 73 69 6c 76 65 72 6d 61 6e 00 64 61 74 61 62 61 73 65 00 70 6f 73 74 67 72 65 73 00 61 70 70 6c 69 63 61 74 69 6f 6e 5f 6e 61 6d 65 00 70 73 71 6c 00 00') },
+  pgMessage: { head: hexBuf(''), body: hexBuf('00 03 00 00 75 73 65 72 00 6a 75 73 74 69 6e 73 69 6c 76 65 72 6d 61 6e 00 64 61 74 61 62 61 73 65 00 70 6f 73 74 67 72 65 73 00 61 70 70 6c 69 63 61 74 69 6f 6e 5f 6e 61 6d 65 00 70 73 71 6c 00 00') },
   desc: 'second startup'
 })
 

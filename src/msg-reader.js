@@ -73,7 +73,7 @@ export const read = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesInclu
 
   if (/* buf is incomplete message */ bodyEnd > buf.length) return [ null, buf ]
   return [ {
-    head: headBytes.length > 0 ? headBytes : null,
+    head: headBytes.length > 0 ? headBytes : hexBuf(''),
     body: buf.slice(bodyStart, bodyEnd),
   }, buf.slice(bodyEnd) ]
 }

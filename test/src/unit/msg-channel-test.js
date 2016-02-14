@@ -74,8 +74,8 @@ describe('msg-channel', () => {
         const secondMessage = hexBuf('00 00 00 04')
         const givenChannel = csp.chan()
         const expectedMessages = [
-          { head: null, body: hexBuf('0b 0c') },
-          { head: null, body: hexBuf('') }
+          { head: hexBuf(''), body: hexBuf('0b 0c') },
+          { head: hexBuf(''), body: hexBuf('') }
         ]
 
         const messageChannel = create(givenChannel, 0)

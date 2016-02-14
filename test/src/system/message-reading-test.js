@@ -130,11 +130,11 @@ describe('Message parsing', () => {
         const input = readFileSync('./test/fixtures/client-handshake')
 
         let [ firstStartupMessage, firstStartupMessageRemainder ] = read(input, 0)
-        assert.strictEqual(firstStartupMessage.head, null)
+        assert.deepEqual(firstStartupMessage.head, new Buffer([]))
         assert.deepEqual(firstStartupMessage.body, new Buffer([0x04, 0xd2, 0x16, 0x2f]))
 
         let [ secondStartupMessage, secondStartupMessageRemainder ] = read(firstStartupMessageRemainder, 0)
-        assert.strictEqual(secondStartupMessage.head, null)
+        assert.deepEqual(secondStartupMessage.head, new Buffer([]))
         assert.deepEqual(secondStartupMessage.body, input.slice(12, 99))
 
         let [ exitMessage, remainder ] = read(secondStartupMessageRemainder)
