@@ -1,6 +1,8 @@
 import { Writable } from 'stream';
 
-export const createMockWriter = (transform) => {
+const identity = (val) => val
+
+export const createMockWriter = (transform = identity) => {
   const writer = new Writable()
   writer._testBuffer = []
   writer.testBuffer = () => {
