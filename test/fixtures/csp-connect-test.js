@@ -2,9 +2,6 @@ import { equal } from 'assert'
 import csp from 'js-csp'
 import { asDesc as messages } from '../../fixtures/messages'
 
-const serverToClientMsgs = csp.chan()
-const clientToServerMsgs = csp.chan()
-
 const mockServer = (rChan, wChan) => {
   return csp.go(function * () {
     let msg
@@ -77,5 +74,7 @@ const client = (rChan, wChan) => {
   })
 }
 
-const serverDone = mockServer(clientToServerMsgs, serverToClientMsgs)
-const clientDone = client(serverToClientMsgs, clientToServerMsgs)
+const serverToClientMsgs = csp.chan()
+const clientToServerMsgs = csp.chan()
+mockServer(clientToServerMsgs, serverToClientMsgs)
+client(serverToClientMsgs, clientToServerMsgs)
