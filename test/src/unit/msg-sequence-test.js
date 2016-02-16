@@ -116,5 +116,16 @@ describe('Message sequence', () => {
       equal(messages.next().done, true)
       deepEqual(rest(), expectedRest)
     })
+
+    it('reads a one byte message', () => {
+      const given = hexBuf('4e')
+      const expectedMessage = { head: hexBuf('4e'), body: hexBuf('') }
+      const expectedRest = hexBuf('')
+
+      const [ messages, rest ] = readSeq(given, 1, 0, false)
+      deepEqual(messages.next().value, expectedMessage)
+      deepEqual(rest(), expectedRest)
+      equal(messages.next().done, true)
+    })
   })
 })

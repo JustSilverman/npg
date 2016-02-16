@@ -92,6 +92,25 @@ describe('msg-channel', () => {
         })
       })
 
+      it('handles 1 byte message', (done) => {
+        const firstMessage = hexBuf('4e')
+        const givenChannel = csp.chan()
+        const expectedMessages = [
+          { head: hexBuf('4e'), body: hexBuf('') },
+        ]
+
+        const messageChannel = create(givenChannel, 0)
+        const postgresMessages = []
+
+        csp.go(function* () {
+          yield csp.put(givenChannel, firstMessage)
+          postgresMessages.push(yield csp.take(messageChannel))
+
+          deepEqual(postgresMessages, expectedMessages)
+          done()
+        })
+      })
+
       it('handles messages with 2 length bytes', (done) => {
         const firstMessage = hexBuf('0a 00 03 0b')
         const secondMessage = hexBuf('0b 00 04 0a 0a')
