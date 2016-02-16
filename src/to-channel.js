@@ -112,7 +112,6 @@ export const fromWritable = (writable) => {
     while((msg = yield csp.take(chan)) !== csp.CLOSED) {
       if (msg instanceof Error) {
         throw msg
-        console.log('here')
       }
 
       yield writeData(writable, msg)
