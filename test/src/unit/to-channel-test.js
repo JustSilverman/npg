@@ -7,7 +7,7 @@ import createMockWriter from '../../helpers/mock-writer'
 import hexBuf from '../../../src/hex-buf'
 import * as toChannel from '../../../src/to-channel'
 
-describe.only('to-channel', () => {
+describe('to-channel', () => {
   describe('#fromReadable', (done) => {
     it('puts the data from the readable onto the channel and closes on end', () => {
       const givenData = [hexBuf('00 01 02'), hexBuf('03 04'), hexBuf('05')]
