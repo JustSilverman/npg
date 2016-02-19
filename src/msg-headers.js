@@ -1,38 +1,38 @@
 
 // A map of byte to header symbols
 
-export const headerBytesToSym = new Map()
+export const symToHeaderByte = new Map()
 
 // -
 
 // A entry for each message header we care about
 // pass ascii char as arg to symbol
 export const authenticationOk = Symbol('R')
-map.set(new Buffer([0x52]), authenticationOk)
+symToHeaderByte.set(authenticationOk, new Buffer([0x52]))
 
 export const sessionConfirm = Symbol('N')
-map.set(new Buffer([0x4e]), sessionConfirm)
+symToHeaderByte.set(sessionConfirm, new Buffer([0x4e]))
 
 export const parameterStatus = Symbol('S')
-map.set(new Buffer([0x53]), parameterStatus)
+symToHeaderByte.set(parameterStatus, new Buffer([0x53]))
 
 export const backendKeyData = Symbol('K')
-map.set(new Buffer([0x4b]), backendKeyData)
+symToHeaderByte.set(backendKeyData, new Buffer([0x4b]))
 
 export const readyForQuery = Symbol('Z')
-map.set(new Buffer([0x5a]), readyForQuery)
+symToHeaderByte.set(readyForQuery, new Buffer([0x5a]))
 
 export const query = Symbol('Q')
-map.set(new Buffer([0x51]), query)
+symToHeaderByte.set(query, new Buffer([0x51]))
 
 export const queryHead = Symbol('T')
-map.set(new Buffer([0x54]), queryHead)
+symToHeaderByte.set(queryHead, new Buffer([0x54]))
 
 export const queryRow = Symbol('D')
-map.set(new Buffer([0x44]), queryRow)
+symToHeaderByte.set(queryRow, new Buffer([0x44]))
 
 export const queryClose = Symbol('C')
-map.set(new Buffer([0x43]), queryClose)
+symToHeaderByte.set(queryClose, new Buffer([0x43]))
 
 export const exit = Symbol('X')
-map.set(new Buffer([0x58]), exit)
+symToHeaderByte.set(exit, new Buffer([0x58]))
