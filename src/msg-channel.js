@@ -105,9 +105,7 @@ export const create = (rChan, headLength = 1, lengthBytesCount = 4, lengthBytesI
       partialMessage = Buffer.concat([partialMessage, tempBuf])
       let [ messages, restFnc ] = readSeq(partialMessage, headLength, lengthBytesCount, lengthBytesInclusive)
 
-      for (let msg of messages) {
-        yield csp.put(wChan, msg)
-      }
+      yield csp.operations.onto(wChan, [...messages], true)
 
       partialMessage = restFnc()
     }
