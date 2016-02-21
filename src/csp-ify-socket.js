@@ -28,8 +28,22 @@ meta.fn('toChannels', {
     'Channel from which data is read and then written to the socket'
   ],
   examples: [
-    ['read, write and error', (f) => {
+    ['read from read channel', (f) => {
+      const givenSocket = createMockReader([ hexBuf('00'), hexBuf('01 02'), hexBuf('03') ])
+      const expectedAllData = hexBuf('00 01 02 03')
+      const { connected, errors, read, write } = toChannels(givenSocket)
 
+      csp.go(function* () {
+        const allData = []
+        let data
+
+        while((data = yield csp.take(read)) !== csp.CLOSED) {
+          allData.push(data)
+        }
+
+        deepEqual(Buffer.concat(allData), expectedAllData)
+        done()
+      })
     }]
   ],
 })
