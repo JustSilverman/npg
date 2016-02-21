@@ -96,9 +96,10 @@ export const create = (rChan, headLength = 1, lengthBytesCount = 4, lengthBytesI
   csp.go(function* () {
     let tempBuf
     let partialMessage = hexBuf('')
-    while((tempBuf = yield csp.take(rChan)) !== csp.CLOSED) {
+    while(!wChan.closed && (tempBuf = yield csp.take(rChan)) !== csp.CLOSED) {
       if (tempBuf instanceof Error) {
         yield csp.put(wChan, tempBuf)
+        wChan.close()
         return
       }
 
@@ -106,7 +107,6 @@ export const create = (rChan, headLength = 1, lengthBytesCount = 4, lengthBytesI
       let [ messages, restFnc ] = readSeq(partialMessage, headLength, lengthBytesCount, lengthBytesInclusive)
 
       yield csp.operations.onto(wChan, [...messages], true)
-
       partialMessage = restFnc()
     }
 

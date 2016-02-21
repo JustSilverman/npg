@@ -29,9 +29,10 @@ describe('msg-channel', () => {
       })
     })
 
-    it('propagates errors', (done) => {
+    it('propagates errors and closes the channel', (done) => {
       const firstMessage = hexBuf('0a 00 00 00 06 0b 0c')
       const givenError = new Error('Error in the channel')
+      const lastMessage = hexBuf('0a 00 00 00 04')
       const givenChannel = csp.chan()
       const expectedMessage = { head: hexBuf('0a'), body: hexBuf('0b 0c') }
 
@@ -41,10 +42,14 @@ describe('msg-channel', () => {
         yield csp.put(givenChannel, firstMessage)
         const msg = yield csp.take(messageChannel)
         deepEqual(expectedMessage, msg)
+
         yield csp.put(givenChannel, givenError)
         const error = yield csp.take(messageChannel)
-
         equalErrors(error, givenError)
+
+        const isOpen = yield csp.put(messageChannel, lastMessage)
+        deepEqual(isOpen, false)
+
         done()
       })
     })
@@ -61,6 +66,32 @@ describe('msg-channel', () => {
 
         const msg = yield csp.take(messageChannel)
         deepEqual(expectedMessage, msg)
+
+        const close = yield csp.take(messageChannel)
+        deepEqual(close, null)
+        done()
+      })
+    })
+
+    it('handles the closing of the message channel', (done) => {
+      const firstMessage = hexBuf('00 00 00 06 0b 0c')
+      const secondMessage = hexBuf('0a 00 00 00 06 0b 0c')
+      const givenChannel = csp.chan()
+      const expectedFirstMessage = { head: hexBuf(''), body: hexBuf('0b 0c') }
+      const expectedSecondMessage = { head: hexBuf('0a'), body: hexBuf('0b 0c') }
+
+      csp.go(function* () {
+        const headlessMessageChannel = create(givenChannel, 0)
+        yield csp.put(givenChannel, firstMessage)
+        const headlessMessage = yield csp.take(headlessMessageChannel)
+        deepEqual(expectedFirstMessage, headlessMessage)
+        headlessMessageChannel.close()
+
+        const messageChannel = create(givenChannel)
+        yield csp.put(givenChannel, secondMessage)
+        const msg = yield csp.take(messageChannel)
+        deepEqual(expectedSecondMessage, msg)
+        givenChannel.close()
 
         const close = yield csp.take(messageChannel)
         deepEqual(close, null)
@@ -99,7 +130,7 @@ describe('msg-channel', () => {
           { head: hexBuf('4e'), body: hexBuf('') },
         ]
 
-        const messageChannel = create(givenChannel, 0)
+        const messageChannel = create(givenChannel, 1, 0, false)
         const postgresMessages = []
 
         csp.go(function* () {
