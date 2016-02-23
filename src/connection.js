@@ -6,12 +6,12 @@ import msgChannel from './msg-channel'
 import * as headers from './msg-headers'
 import { ofType } from './msg-equality'
 import toChannels from './csp-ify-socket'
-import create from './msg-creator'
+import * as create from './msg-creator'
 
 const toMessage = (sqlString) => {
   const sqlAsBuf = Buffer.concat([new Buffer(sqlString), new Buffer([0x00])])
   const head = headers.symToHeaderByte.get(headers.query)
-  return create(head, sqlAsBuf)
+  return create.fromPgMessage(head, sqlAsBuf)
 }
 
 export const connectArgs = (pgUrl) => {

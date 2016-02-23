@@ -15,7 +15,7 @@ meta.module(module, {
 
 // -
 
-meta.fn('create', {
+meta.fn('fromPgMessage', {
   doc: 'Creates a valid message buffer',
   shape: 'Buffer, Buffer, int?, bool? -> Buffer',
   args: [
@@ -35,7 +35,7 @@ meta.fn('create', {
   },
 })
 
-export const create = (head, body, lengthBytesCount = 4, lengthBytesInclusive = true) => {
+export const fromPgMessage = (head, body, lengthBytesCount = 4, lengthBytesInclusive = true) => {
   const messageBodylength = lengthBytesInclusive
     ? body.length + lengthBytesCount
     : body.length
@@ -45,5 +45,3 @@ export const create = (head, body, lengthBytesCount = 4, lengthBytesInclusive = 
   if (!head) segments.shift()
   return Buffer.concat(segments)
 }
-
-export default create
