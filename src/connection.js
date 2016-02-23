@@ -8,12 +8,6 @@ import { ofType } from './msg-equality'
 import toChannels from './csp-ify-socket'
 import * as create from './msg-creator'
 
-const toMessage = (sqlString) => {
-  const sqlAsBuf = Buffer.concat([new Buffer(sqlString), new Buffer([0x00])])
-  const head = headers.symToHeaderByte.get(headers.query)
-  return create.fromPgMessage(head, sqlAsBuf)
-}
-
 export const connectArgs = (pgUrl) => {
   if (typeof pgUrl === 'number') {
     return { port: pgUrl }
@@ -71,7 +65,8 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     let statement = yield csp.take(statementReader)
     while(statement !== csp.CLOSED) {
       const rowMessages = []
-      yield csp.put(wChan, toMessage(statement))
+
+      yield csp.put(wChan, create.fromBuf(headers.query, new Buffer(statement), true))
       console.log('message sent')
 
       const queryHead = yield csp.take(messagesChannel)
