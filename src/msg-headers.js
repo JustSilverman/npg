@@ -1,12 +1,8 @@
 
-// A map of byte to header symbols
+// A map of header symbol to header byte
 
 export const symToHeaderByte = new Map()
 
-// -
-
-// A entry for each message header we care about
-// pass ascii char as arg to symbol
 export const authenticationOk = Symbol('R')
 symToHeaderByte.set(authenticationOk, new Buffer([0x52]))
 

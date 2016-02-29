@@ -102,7 +102,6 @@ describe('msg-creator', () => {
     it('creates a message from a head and body', () => {
       const givenBody = hexBuf('ab dd 12 23')
       const givenHeadSym = headers.authenticationOk
-      console.log('sym ', givenHeadSym)
       const expected = hexBuf('52 00 00 00 08 ab dd 12 23')
 
       deepEqual(create.fromBuf(givenHeadSym, givenBody), expected)
@@ -111,7 +110,6 @@ describe('msg-creator', () => {
     it('creates a message from a head and body with a null byte', () => {
       const givenBody = hexBuf('ab dd 12 23')
       const givenHeadSym = headers.query
-      console.log('sym ', givenHeadSym)
       const expected = hexBuf('51 00 00 00 09 ab dd 12 23 00')
 
       deepEqual(create.fromBuf(givenHeadSym, givenBody, true), expected)

@@ -14,8 +14,8 @@
     "wach": "^1.0.0"
   },
   "scripts": {
-    "test": "mocha test/src/**/*.js",
-    "wach-test": "wach 'clear; mocha test/src/**/*.js'"
+    "test": "mocha test/src/**/*",
+    "wach-test": "wach 'clear; mocha test/src/**/*'"
   },
   "babel": {
     "presets": [
