@@ -21,11 +21,11 @@ symToHeaderByte.set(readyForQuery, new Buffer([0x5a]))
 export const query = Symbol('Q')
 symToHeaderByte.set(query, new Buffer([0x51]))
 
-export const queryHead = Symbol('T')
-symToHeaderByte.set(queryHead, new Buffer([0x54]))
+export const rowDescription = Symbol('T')
+symToHeaderByte.set(rowDescription, new Buffer([0x54]))
 
-export const queryRow = Symbol('D')
-symToHeaderByte.set(queryRow, new Buffer([0x44]))
+export const dataRow = Symbol('D')
+symToHeaderByte.set(dataRow, new Buffer([0x44]))
 
 export const queryClose = Symbol('C')
 symToHeaderByte.set(queryClose, new Buffer([0x43]))

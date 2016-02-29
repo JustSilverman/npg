@@ -69,8 +69,8 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
       yield csp.put(wChan, create.fromBuf(headers.query, new Buffer(statement), true))
       console.log('message sent')
 
-      const queryHead = yield csp.take(messagesChannel)
-      console.log('query head ', queryHead)
+      const rowDescription = yield csp.take(messagesChannel)
+      console.log('rowDescription ', rowDescription)
       let rowMessage = yield csp.take(messagesChannel)
       while(rowMessage !== csp.CLOSED && !ofType(headers.queryClose, rowMessage)) {
         rowMessages.push(rowMessage)

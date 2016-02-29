@@ -44,13 +44,13 @@ messages.set('query', {
   desc: 'query'
 })
 
-messages.set('queryHead', {
+messages.set('rowDescription', {
   buf: hexBuf('54 00 00 00 1c 00 01 6e 75 6d 00 00 00 40 07 00 01 00 00 00 17 00 04 ff ff ff ff 00 00'),
   pgMessage: { head: hexBuf('54'), body: hexBuf('00 01 6e 75 6d 00 00 00 40 07 00 01 00 00 00 17 00 04 ff ff ff ff 00 00') },
   desc: 'query head'
 })
 
-messages.set('queryRow', {
+messages.set('dataRow', {
   buf: hexBuf('44 00 00 00 0b 00 01 00 00 00 01 32'),
   pgMessage: { head: hexBuf('44'), body: hexBuf('00 01 00 00 00 01 32') },
   desc: 'query row'

@@ -33,8 +33,8 @@ describe('msg-equality', () => {
         [ headers.backendKeyData, { head: hexBuf('4b'), body: hexBuf('') } ],
         [ headers.readyForQuery, { head: hexBuf('5a'), body: hexBuf('') } ],
         [ headers.query, { head: hexBuf('51'), body: hexBuf('') } ],
-        [ headers.queryHead, { head: hexBuf('54'), body: hexBuf('') } ],
-        [ headers.queryRow, { head: hexBuf('44'), body: hexBuf('') } ],
+        [ headers.rowDescription, { head: hexBuf('54'), body: hexBuf('') } ],
+        [ headers.dataRow, { head: hexBuf('44'), body: hexBuf('') } ],
         [ headers.queryClose, { head: hexBuf('43'), body: hexBuf('') } ],
         [ headers.exit, { head: hexBuf('58'), body: hexBuf('') } ]
       ]
