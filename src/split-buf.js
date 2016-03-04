@@ -2,6 +2,11 @@ import * as assert from 'assert'
 import * as meta from './meta'
 import { hexBuf }  from './hex-buf'
 
+/*
+  readStruct(buf, schema)
+  make schema polymorphic - string or fnc
+*/
+
 meta.module(module, {
   doc: `
     # Buffer utility
