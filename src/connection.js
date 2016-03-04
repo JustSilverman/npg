@@ -7,6 +7,7 @@ import * as headers from './msg-headers'
 import { ofType } from './msg-equality'
 import toChannels from './csp-ify-socket'
 import * as create from './msg-creator'
+import { headerSymToParser } from './msg-parsing/msg-parsers'
 
 export const connectArgs = (pgUrl) => {
   if (typeof pgUrl === 'number') {
@@ -46,9 +47,18 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     const messagesChannel = msgChannel(rChan)
     yield csp.put(wChan, rawMsgs.get('secondStartup'))
 
+    const authenticationOk = yield csp.take(messagesChannel)
+
+    //validate authenticateOk
+
     msg = yield csp.take(messagesChannel)
     while((msg !== csp.CLOSED) && !ofType(headers.backendKeyData, msg)) {
-      parameterStatusMessages.push(msg)
+      const headerSym = headers.headerByteToSym.get(msg.head.toString())
+      if (headerSym === undefined) {
+        throw new Error('Unknown header byte of: ' + msg.head)
+      }
+
+      parameterStatusMessages.push(headerSymToParser.get(headerSym)(msg.body))
       msg = yield csp.take(messagesChannel)
     }
 
@@ -56,6 +66,8 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     if (!ofType(headers.backendKeyData, backendKeyDataMsg)) {
       throw new Error('Expected ready backend key data message, but received ', msg)
     }
+
+    const backendKeyDataHeaderSym = headers.headerByteToSym.get(msg.head.toString())
 
     const readyForQueryMsg = yield csp.take(messagesChannel)
     if (!ofType(headers.readyForQuery, readyForQueryMsg)) {
@@ -67,18 +79,19 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
       const rowMessages = []
 
       yield csp.put(wChan, create.fromBuf(headers.query, new Buffer(statement), true))
-      console.log('message sent')
 
       const rowDescription = yield csp.take(messagesChannel)
-      console.log('rowDescription ', rowDescription)
+      const rowDescriptionHeaderSym = headers.headerByteToSym.get(rowDescription.head.toString())
+
       let rowMessage = yield csp.take(messagesChannel)
       while(rowMessage !== csp.CLOSED && !ofType(headers.queryClose, rowMessage)) {
-        rowMessages.push(rowMessage)
+        const dataRowHeader = headers.headerByteToSym.get(rowMessage.head.toString())
+        rowMessages.push(headerSymToParser.get(dataRowHeader)(rowMessage.body))
         rowMessage = yield csp.take(messagesChannel)
       }
+
       const queryClose = rowMessage
-      //transform messages
-      yield csp.put(resultWriter, rowMessages.map(msg => msg.body))
+      yield csp.put(resultWriter, rowMessages)
       if (!ofType(headers.readyForQuery, yield csp.take(messagesChannel))) {
         throw new Error('Expected ready for query message, but received ', readyForQueryMsg)
       }
