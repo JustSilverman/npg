@@ -1,5 +1,18 @@
 # NPG - A postgres client for node (_work in process_)
 
+Current status: can establish a connection with the server and run some basic queries. The full protocol is not yet supported and right now you must interface with the api using goroutines. Support for callbacks and promises is planned once the channel api settles down.
+
+    // connect takes a port and returns a channel for writing
+    // statements and another for reading the corresponding results
+    const [ results, statements ] = connect(PORT)
+    csp.go(function * () {  
+      yield csp.put(statements, 'select * from nums')
+      console.log('result received ', yield csp.take(results))
+      statements.close()
+    })
+
+---
+
 ## Goals:
 
 * binary protocol parser
@@ -119,10 +132,10 @@ From the end user's perspective, they shouldn't need know how the protocol works
 
 ```
 // create new postgres store
-initdb tmp-pgstore/pg
+initdb tmp/pg
 
 // start postgres server
-postgres -D tmp-pgstore/pg -i -p 1234
+postgres -D tmp/pg -i -p 1234
 
 // connect to postgres server and opens client
 psql -h localhost -p 1234 postgres
