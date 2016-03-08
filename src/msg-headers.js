@@ -43,3 +43,7 @@ headerByteToSym.set('C', queryClose)
 export const exit = Symbol('exit (X)')
 symToHeaderByte.set(exit, new Buffer([0x58]))
 headerByteToSym.set('X', exit)
+
+export const errorResponse = Symbol('errorResponse (E)')
+symToHeaderByte.set(errorResponse, new Buffer('E'))
+headerByteToSym.set('E', errorResponse)
