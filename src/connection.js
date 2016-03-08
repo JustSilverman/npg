@@ -24,6 +24,23 @@ export const connect = (pgUrl) => {
   return startup(connected, read, write, errors)
 }
 
+const parsePgMessage = (typeSym, message, headerMap = headers.headerByteToSym, parseMap = headerSymToParser) => {
+  const headerSym = headerMap.get(message.head.toString())
+  if (!headerSym) {
+    throw new Error(`Unsupported message type for header: ${message.head[0].toString(16)} (${message.head.toString()})'`)
+  }
+  if (headerSym !== typeSym) {
+    throw new Error(`Expected to receive message of type ${typeSym.toString()}, but received ${headerSym.toString()}`)
+  }
+
+  const parserFnc = parseMap.get(headerSym)
+  if (!parserFnc) {
+    throw new Error(`Unsupported parser operation for header: ${message.head[0].toString(16)} (${message.head.toString()})'`)
+  }
+
+  return parserFnc(message.body)
+}
+
 //TODO: error handling with alts
 export const startup = (connectedChan, rChan, wChan, errChan) => {
   const resultWriter = csp.chan()
@@ -47,54 +64,36 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     const messagesChannel = msgChannel(rChan)
     yield csp.put(wChan, rawMsgs.get('secondStartup'))
 
-    const authenticationOk = yield csp.take(messagesChannel)
-
-    //validate authenticateOk
+    parsePgMessage(headers.authenticationOk, yield csp.take(messagesChannel))
 
     msg = yield csp.take(messagesChannel)
     while((msg !== csp.CLOSED) && !ofType(headers.backendKeyData, msg)) {
-      const headerSym = headers.headerByteToSym.get(msg.head.toString())
-      if (headerSym === undefined) {
-        throw new Error('Unknown header byte of: ' + msg.head)
-      }
-
-      parameterStatusMessages.push(headerSymToParser.get(headerSym)(msg.body))
+      parameterStatusMessages.push(parsePgMessage(headers.parameterStatus, msg))
       msg = yield csp.take(messagesChannel)
     }
 
-    const backendKeyDataMsg = msg
-    if (!ofType(headers.backendKeyData, backendKeyDataMsg)) {
-      throw new Error('Expected ready backend key data message, but received ', msg)
-    }
-
-    const backendKeyDataHeaderSym = headers.headerByteToSym.get(msg.head.toString())
-
-    const readyForQueryMsg = yield csp.take(messagesChannel)
-    if (!ofType(headers.readyForQuery, readyForQueryMsg)) {
-      throw new Error('Expected ready for query message, but received ', readyForQueryMsg)
-    }
+    const backendKeyDataMsg = parsePgMessage(headers.backendKeyData, msg)
+    parsePgMessage(headers.readyForQuery, yield csp.take(messagesChannel))
 
     let statement = yield csp.take(statementReader)
     while(statement !== csp.CLOSED) {
-      const rowMessages = []
+      const dataRows = []
 
       yield csp.put(wChan, create.fromBuf(headers.query, new Buffer(statement), true))
 
-      const rowDescription = yield csp.take(messagesChannel)
-      const rowDescriptionHeaderSym = headers.headerByteToSym.get(rowDescription.head.toString())
+      let message = yield csp.take(messagesChannel)
+      console.log(message)
+      const rowDescription = parsePgMessage(headers.rowDescription, message)
 
-      let rowMessage = yield csp.take(messagesChannel)
-      while(rowMessage !== csp.CLOSED && !ofType(headers.queryClose, rowMessage)) {
-        const dataRowHeader = headers.headerByteToSym.get(rowMessage.head.toString())
-        rowMessages.push(headerSymToParser.get(dataRowHeader)(rowMessage.body))
-        rowMessage = yield csp.take(messagesChannel)
+      let dataRow = yield csp.take(messagesChannel)
+      while(dataRow !== csp.CLOSED && !ofType(headers.queryClose, dataRow)) {
+        dataRows.push(parsePgMessage(headers.dataRow, dataRow))
+        dataRow = yield csp.take(messagesChannel)
       }
 
-      const queryClose = rowMessage
-      yield csp.put(resultWriter, rowMessages)
-      if (!ofType(headers.readyForQuery, yield csp.take(messagesChannel))) {
-        throw new Error('Expected ready for query message, but received ', readyForQueryMsg)
-      }
+      const queryClose = dataRow
+      yield csp.put(resultWriter, dataRows)
+      parsePgMessage(headers.readyForQuery, yield csp.take(messagesChannel))
 
       statement = yield csp.take(statementReader)
     }
