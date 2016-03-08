@@ -1,6 +1,6 @@
 import * as assert from 'assert'
 import * as meta from './meta'
-import { hexBuf }  from './hex-buf'
+import { hexBuf } from './hex-buf'
 import { symToHeaderByte } from './msg-headers'
 
 meta.module(module, {
@@ -23,10 +23,10 @@ meta.fn('fromPgMessage', {
     'buffer with head (message type), optional',
     'buffer with message body',
     'size of length bytes, defaults to 4, optional',
-    'whether the message length include the length bytes, defaults to true, optional'
+    'whether the message length include the length bytes, defaults to true, optional',
   ],
   returns: [
-    'message buffer'
+    'message buffer',
   ],
   examples: {
     '1 byte header, 1 byte body': (f) => {
@@ -52,21 +52,20 @@ meta.fn('fromBuf', {
   shape: 'Symbol, Buffer, Buffer, bool?, int?, bool? -> Buffer',
   args: [
     'Symbol referencing the message type',
-    'buffer with head (message type), optional',
     'buffer with message body',
     'boolean whether to include a null byte',
     'size of length bytes, defaults to 4, optional',
-    'whether the message length include the length bytes, defaults to true, optional'
+    'whether the message length include the length bytes, defaults to true, optional',
   ],
   returns: [
-    'message buffer'
+    'message buffer',
   ],
   examples: {
     'message with null byte': (f) => {
       const givenBodyBuffer = hexBuf('0a 0b 0c')
       const givenHeadSymbol = symToHeaderByte.query
       const expectedMessage = hexBuf('0a 00 00 00 08 0a 0b 0c 00')
-      deepEqual(givenHeadSymbol, givenBodyBuffer, true)
+      deepEqual(f(givenHeadSymbol, givenBodyBuffer), expectedMessage)
     },
   },
 })
