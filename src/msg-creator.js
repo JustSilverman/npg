@@ -16,7 +16,7 @@ meta.module(module, {
 
 // -
 
-meta.fn('fromPgMessage', {
+meta.fn('write', {
   doc: 'Creates a valid message',
   shape: 'Buffer, Buffer, int?, bool? -> Buffer',
   args: [
@@ -36,7 +36,7 @@ meta.fn('fromPgMessage', {
   },
 })
 
-export const fromPgMessage = (head, body, lengthBytesCount = 4, lengthBytesInclusive = true) => {
+export const write = (head, body, lengthBytesCount = 4, lengthBytesInclusive = true) => {
   const messageBodylength = lengthBytesInclusive
     ? body.length + lengthBytesCount
     : body.length
@@ -46,6 +46,8 @@ export const fromPgMessage = (head, body, lengthBytesCount = 4, lengthBytesInclu
   if (!head) segments.shift()
   return Buffer.concat(segments)
 }
+
+// not a great name, seems to do two fairly unrelated things :/
 
 meta.fn('fromBuf', {
   doc: 'Creates a valid message buffer',
@@ -73,5 +75,5 @@ meta.fn('fromBuf', {
 export const fromBuf = (headSymbol, body, includeNullByte = false, lengthBytesCount = 4, lengthBytesInclusive = true) => {
   const head = symToHeaderByte.get(headSymbol)
   body = includeNullByte ? Buffer.concat([ body, hexBuf('00') ]) : body
-  return fromPgMessage(head, body, lengthBytesCount, lengthBytesInclusive)
+  return write(head, body, lengthBytesCount, lengthBytesInclusive)
 }

@@ -36,14 +36,15 @@ describe('msg-equality', () => {
         [ headers.rowDescription, { head: hexBuf('54'), body: hexBuf('') } ],
         [ headers.dataRow, { head: hexBuf('44'), body: hexBuf('') } ],
         [ headers.queryClose, { head: hexBuf('43'), body: hexBuf('') } ],
-        [ headers.exit, { head: hexBuf('58'), body: hexBuf('') } ]
+        [ headers.exit, { head: hexBuf('58'), body: hexBuf('') } ],
       ]
 
       givenHeadsAndMessages.forEach(([head, msg]) => {
         deepEqual(ofType(head, msg), true)
       })
 
-      deepEqual(givenHeadsAndMessages.length, headers.symToHeaderByte.size)
+      deepEqual(givenHeadsAndMessages.length, headers.symToHeaderByte.size,
+        'not every header type tested')
     })
 
     it('is false for mismatching types', () => {

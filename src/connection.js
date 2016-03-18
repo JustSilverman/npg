@@ -3,6 +3,7 @@ import net from 'net'
 import csp from 'js-csp'
 import { asBuf as rawMsgs, asPgMessage as pgMsgs } from '../test/fixtures/messages'
 import msgChannel from './msg-channel'
+import * as msgCreator from './msg-creator'
 import * as headers from './msg-headers'
 import { ofType } from './msg-equality'
 import toChannels from './csp-ify-socket'
@@ -17,6 +18,8 @@ export const connectArgs = (pgUrl) => {
   }
 }
 
+// returns a channel for recieving results from running statements
+// and a channel for writing statements
 export const connect = (pgUrl) => {
   const socket = net.connect(connectArgs(pgUrl))
   const { connected, errors, read, write } = toChannels(socket)
@@ -41,19 +44,25 @@ const parsePgMessage = (typeSym, message, headerMap = headers.headerByteToSym, p
   return parserFnc(message.body)
 }
 
+// Message flow docs: http://www.postgresql.org/docs/current/static/protocol-flow.html
+
 //TODO: error handling with alts
+// returns a channel for recieving results from running statements
+// and a channel for writing statements
 export const startup = (connectedChan, rChan, wChan, errChan) => {
-  const resultWriter = csp.chan()
   const statementReader = csp.chan()
+  const resultWriter = csp.chan()
 
   csp.go(function * () {
-    const parameterStatusMessages = []
-    let msg
-
+    // wait for socket connection to establish
     yield csp.take(connectedChan)
 
-    yield csp.put(wChan, rawMsgs.get('firstStartup'))
+    // write session request bytes
+    yield csp.put(wChan, msgCreator.write(null,
+      // startup msg body ... what do these bytes mean?
+      new Buffer('\x04\xd2\x16\x2f')))
 
+    // wait for session confirm byte
     const sessionConfirmChan = msgChannel(rChan, 1, 0, false)
     const sessionConfirmByte = yield csp.take(sessionConfirmChan)
     sessionConfirmChan.close()
@@ -61,10 +70,27 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
       throw new Error('Expected session confirm message, but received ', sessionConfirmByte)
     }
 
+    // create a pg message channel to read the rest of the server's communication through
     const messagesChannel = msgChannel(rChan)
-    yield csp.put(wChan, rawMsgs.get('secondStartup'))
+
+    const startMsgBody = new Buffer([
+        '\x00\x03', // protocol major version number (3)
+        '\x00\x00', // protocol minor version number (0)
+        'user', '\x00', 'mylesbyrne', '\x00', // key/value pair
+        'database', '\x00', 'postgres', '\x00', // key/value pair
+        // '\x00', // trailing null
+      ].join(''))
+
+    // write startup message
+    // const startMsg = msgCreator.write(null, startMsgBody)
+    const startMsg = msgCreator.write(null, rawMsgs.get('secondStartup'))
+
+    yield csp.put(wChan, startMsg)
 
     parsePgMessage(headers.authenticationOk, yield csp.take(messagesChannel))
+
+    const parameterStatusMessages = []
+    let msg
 
     msg = yield csp.take(messagesChannel)
     while((msg !== csp.CLOSED) && !ofType(headers.backendKeyData, msg)) {
