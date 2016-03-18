@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+# An entry point for project "tasks", e.g.
+#   $ run test
+
+# Can also run local, npm-installed executables, e.g.
+#   $ run babel-node
+
+# -
+
+# bash "strict mode"
+set -euo pipefail; IFS=$'\n\t'
+
+# add npm-installed executables to path
+export PATH="./node_modules/.bin:$PATH"
+
+# -
+
+function test {
+  local path=${1-'test/src/**/*.js'}
+  mocha --opts test/mocha.opts "$path"
+}
+
+function lint {
+  eslint .
+}
+
+# -
+
+function start_test_pgserver {
+  mkdir -p tmp
+  [[ -d tmp/pg ]] || initdb tmp/pg
+  echo '** starting postgres server on port 1234'
+  postgres -D tmp/pg -i -p 1234
+}
+
+# -
+
+# if args given, eval them as command run in the context of this script's environment
+[[ $# -gt 0 ]] && {
+  cmd="$1"
+  shift
+  $cmd "$@"
+}
+
