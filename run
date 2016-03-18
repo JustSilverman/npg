@@ -22,7 +22,8 @@ function test {
 }
 
 function lint {
-  eslint .
+  local path=${1-.}
+  eslint $path
 }
 
 # -
