@@ -1,7 +1,5 @@
-const PORT = 1234
 import net from 'net'
 import csp from 'js-csp'
-import { asBuf as rawMsgs, asPgMessage as pgMsgs } from '../test/fixtures/messages'
 import msgChannel from './msg-channel'
 import * as msgCreator from './msg-creator'
 import * as headers from './msg-headers'
@@ -9,6 +7,7 @@ import { ofType } from './msg-equality'
 import toChannels from './csp-ify-socket'
 import * as create from './msg-creator'
 import { headerSymToParser } from './msg-parsing/msg-parsers'
+import hexBuf from './hex-buf'
 
 export const connectArgs = (pgUrl) => {
   if (typeof pgUrl === 'number') {
@@ -58,13 +57,14 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     yield csp.take(connectedChan)
 
     // write session request bytes
-    yield csp.put(wChan, msgCreator.write(null,
-      // startup msg body ... what do these bytes mean?
-      new Buffer('\x04\xd2\x16\x2f')))
+    const unidentifiedStartup = msgCreator.write(null, hexBuf('04 d2 16 2f'))
+
+    yield csp.put(wChan, unidentifiedStartup)
 
     // wait for session confirm byte
     const sessionConfirmChan = msgChannel(rChan, 1, 0, false)
     const sessionConfirmByte = yield csp.take(sessionConfirmChan)
+
     sessionConfirmChan.close()
     if (!ofType(headers.sessionConfirm, sessionConfirmByte)) {
       throw new Error('Expected session confirm message, but received ', sessionConfirmByte)
@@ -74,16 +74,16 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     const messagesChannel = msgChannel(rChan)
 
     const startMsgBody = new Buffer([
-        '\x00\x03', // protocol major version number (3)
-        '\x00\x00', // protocol minor version number (0)
-        'user', '\x00', 'mylesbyrne', '\x00', // key/value pair
-        'database', '\x00', 'postgres', '\x00', // key/value pair
-        // '\x00', // trailing null
+        '\u0000', '\u0003',// protocol major version number (3)
+        '\u0000', '\u0000',// protocol minor version number (0)
+        'user', '\u0000', 'justinsilverman', '\u0000', // key/value pair
+        'database', '\u0000', 'postgres', '\u0000', // key/value pair
+        '\u0000', // trailing null
       ].join(''))
 
     // write startup message
-    // const startMsg = msgCreator.write(null, startMsgBody)
-    const startMsg = msgCreator.write(null, rawMsgs.get('secondStartup'))
+    const startMsg = msgCreator.write(null, startMsgBody)
+    // const startMsg = msgCreator.write(null, rawMsgs.get('secondStartup'))
 
     yield csp.put(wChan, startMsg)
 
@@ -117,7 +117,6 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
         dataRow = yield csp.take(messagesChannel)
       }
 
-      const queryClose = dataRow
       yield csp.put(resultWriter, dataRows)
       parsePgMessage(headers.readyForQuery, yield csp.take(messagesChannel))
 
