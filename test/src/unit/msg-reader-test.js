@@ -160,6 +160,13 @@ describe('Message parser', () => {
       deepEqual(read(givenInput, 1, 0, false), expectedResult)
     })
 
+    it('single byte message with a remainder', () => {
+      const givenInput = hexBuf('0e 0a')
+      const expectedResult = [ { head: hexBuf('0e'), body: hexBuf('') }, hexBuf('0a') ]
+
+      deepEqual(read(givenInput, 1, 0, false), expectedResult)
+    })
+
     it('head of length 3', () => {
       const givenInput = hexBuf('0a 0b 0c 00 00 00 04 01')
       const expectedResult = [ { head: hexBuf('0a 0b 0c'), body: hexBuf('') }, hexBuf('01') ]

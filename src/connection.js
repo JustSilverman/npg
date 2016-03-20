@@ -57,18 +57,25 @@ export const startup = (connectedChan, rChan, wChan, errChan) => {
     yield csp.take(connectedChan)
 
     // write session request bytes
-    const unidentifiedStartup = msgCreator.write(null, hexBuf('04 d2 16 2f'))
+    const unidentifiedStartup = msgCreator.write(null, hexBuf('04 d2 16 2g'))
 
     yield csp.put(wChan, unidentifiedStartup)
 
-    // wait for session confirm byte
-    const sessionConfirmChan = msgChannel(rChan, 1, 0, false)
-    const sessionConfirmByte = yield csp.take(sessionConfirmChan)
-
-    sessionConfirmChan.close()
-    if (!ofType(headers.sessionConfirm, sessionConfirmByte)) {
-      throw new Error('Expected session confirm message, but received ', sessionConfirmByte)
+    const buffer = yield csp.take(rChan)
+    if (buffer !== sessionConfirmByte) {
+      const bufferChan = csp.chan()
+      yield csp.put(chan, buffer)
+      const errorChannel = msgChannel(joinChans(bufferChan, rChan)
     }
+
+    // const sessionConfirmChan = msgChannel(rChan, 1, 0, false)
+    // const sessionConfirmByte = yield csp.take(sessionConfirmChan)
+    // console.log('sessionConfirm ', sessionConfirmByte)
+
+    // sessionConfirmChan.close()
+    // if (!ofType(headers.sessionConfirm, sessionConfirmByte)) {
+    //   throw new Error('Expected session confirm message, but received ', sessionConfirmByte.body.toString())
+    // }
 
     // create a pg message channel to read the rest of the server's communication through
     const messagesChannel = msgChannel(rChan)

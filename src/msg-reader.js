@@ -52,6 +52,14 @@ meta.fn('read', {
   },
 })
 
+const computeBodyLength = (lengthBytes, lengthBytesCount, lengthBytesInclusive) => {
+  if (lengthBytesCount === 0) {
+    return 0
+  }
+
+  return lengthBytes.readUIntBE(0, lengthBytesCount) - (lengthBytesInclusive ? lengthBytesCount : 0)
+}
+
 export const read = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesInclusive = true) => {
   if (/* buf is incomplete message */ buf.length < headLength + lengthBytesCount) {
     return [ null, buf ]
@@ -68,7 +76,7 @@ export const read = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesInclu
   const lengthEnd = headEnd + lengthBytesCount
   const bodyStart = lengthEnd
   const lengthBytes = buf.slice(lengthStart, lengthEnd)
-  const bodyLength = lengthBytes.readUIntBE(0, lengthBytesCount) - (lengthBytesInclusive ? lengthBytesCount : 0)
+  const bodyLength = computeBodyLength(lengthBytes, lengthBytesCount, lengthBytesInclusive)
   const bodyEnd = bodyStart + bodyLength
 
   if (/* buf is incomplete message */ bodyEnd > buf.length) return [ null, buf ]

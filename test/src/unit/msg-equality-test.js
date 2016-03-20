@@ -26,25 +26,10 @@ describe('msg-equality', () => {
 
   describe('#ofType', () => {
     it('is true for the correct type', () => {
-      const givenHeadsAndMessages = [
-        [ headers.authenticationOk, { head: hexBuf('52'), body: hexBuf('') } ],
-        [ headers.sessionConfirm, { head: hexBuf('4e'), body: hexBuf('') } ],
-        [ headers.parameterStatus, { head: hexBuf('53'), body: hexBuf('') } ],
-        [ headers.backendKeyData, { head: hexBuf('4b'), body: hexBuf('') } ],
-        [ headers.readyForQuery, { head: hexBuf('5a'), body: hexBuf('') } ],
-        [ headers.query, { head: hexBuf('51'), body: hexBuf('') } ],
-        [ headers.rowDescription, { head: hexBuf('54'), body: hexBuf('') } ],
-        [ headers.dataRow, { head: hexBuf('44'), body: hexBuf('') } ],
-        [ headers.queryClose, { head: hexBuf('43'), body: hexBuf('') } ],
-        [ headers.exit, { head: hexBuf('58'), body: hexBuf('') } ],
-      ]
+      const givenHead = headers.authenticationOk
+      const givenMessage = { head: hexBuf('52'), body: hexBuf('') }
 
-      givenHeadsAndMessages.forEach(([head, msg]) => {
-        deepEqual(ofType(head, msg), true)
-      })
-
-      deepEqual(givenHeadsAndMessages.length, headers.symToHeaderByte.size,
-        'not every header type tested')
+      deepEqual(ofType(givenHead, givenMessage), true)
     })
 
     it('is false for mismatching types', () => {
@@ -53,5 +38,4 @@ describe('msg-equality', () => {
 
     })
   })
-
 })

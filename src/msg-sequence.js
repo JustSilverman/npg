@@ -1,7 +1,8 @@
 import * as assert from 'assert'
 import * as meta from './meta'
 import { read }  from './msg-reader'
-import { hexBuf }  from './hex-buf'
+import { hexBuf } from './hex-buf'
+import _debug from 'debug'
 
 meta.module(module, {
   doc: `
@@ -66,7 +67,7 @@ export const readSeq = (buf, headLength = 1, lengthBytesCount = 4, lengthBytesIn
   let remainder = buf
 
   const seqGenerator = function* () {
-    [ message, remainder ] = read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
+    [ message, remainder ] =   read(remainder, headLength, lengthBytesCount, lengthBytesInclusive)
 
     while (message) {
       yield message;
